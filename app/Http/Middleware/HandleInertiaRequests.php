@@ -1,0 +1,73 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use App\Models\Menu;
+use Illuminate\Http\Request;
+use Inertia\Middleware;
+
+class HandleInertiaRequests extends Middleware
+{
+    protected $rootView = 'app';
+
+    public function version(Request $request): ?string
+    {
+        return parent::version($request);
+    }
+
+    public function share(Request $request): array
+    {
+        $user = $request->user();
+
+        $permissions = [];
+        $menus = [];
+
+        if ($user) {
+            $permissions = $user->getAllPermissions()->pluck('name')->toArray();
+
+            $menus = Menu::where('is_active', true)
+                ->whereNull('parent_id')
+                ->orderBy('order')
+                ->with(['children' => fn ($q) => $q->where('is_active', true)->orderBy('order')])
+                ->get()
+                ->filter(function (Menu $menu) use ($user) {
+                    return $menu->permission === null || $user->can($menu->permission);
+                })
+                ->map(function (Menu $menu) use ($user) {
+                    return [
+                        'id' => $menu->id,
+                        'name' => $menu->name,
+                        'icon' => $menu->icon,
+                        'route' => $menu->route,
+                        'permission' => $menu->permission,
+                        'order' => $menu->order,
+                        'children' => $menu->children
+                            ->filter(fn (Menu $child) => $child->permission === null || $user->can($child->permission))
+                            ->map(fn (Menu $child) => [
+                                'id' => $child->id,
+                                'name' => $child->name,
+                                'icon' => $child->icon,
+                                'route' => $child->route,
+                                'permission' => $child->permission,
+                                'order' => $child->order,
+                            ])
+                            ->values(),
+                    ];
+                })
+                ->values();
+        }
+
+        return [
+            ...parent::share($request),
+            'name' => config('app.name'),
+            'auth' => [
+                'user' => $user ? array_merge($user->toArray(), [
+                    'roles' => $user->getRoleNames()->toArray(),
+                    'permissions' => $permissions,
+                ]) : null,
+            ],
+            'menus' => $menus,
+            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+        ];
+    }
+}
