@@ -1,8 +1,8 @@
 import { router, useForm } from '@inertiajs/react';
-import { ChevronDown, ChevronUp, Edit2, Plus, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import * as LucideIcons from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronUp, Edit2, Plus, Search, Trash2, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 import AdminLayout from '@/layouts/admin-layout';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -31,15 +31,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Menus', href: '/admin/menus' },
 ];
 
-const AVAILABLE_ICONS = [
-    'Activity', 'AlertCircle', 'Archive', 'BarChart', 'Bell', 'BookOpen',
-    'Calendar', 'ChartBar', 'ClipboardList', 'Clock', 'Cog', 'Database',
-    'FileText', 'Folder', 'Globe', 'Grid', 'Home', 'Image', 'Inbox',
-    'KeyRound', 'LayoutDashboard', 'List', 'Lock', 'LogOut', 'Mail',
-    'Map', 'Menu', 'MessageSquare', 'Package', 'Percent', 'Phone',
-    'PieChart', 'Settings', 'ShieldCheck', 'ShoppingCart', 'Star',
-    'Tag', 'Truck', 'User', 'UserCheck', 'Users', 'Wallet',
-];
+// Semua icon dari lucide-react — filter key PascalCase yang merupakan komponen
+// 'Icon' adalah base component lucide yang butuh prop iconNode — exclude
+const ALL_ICONS = Object.keys(LucideIcons)
+    .filter((key) => /^[A-Z]/.test(key) && key !== 'Icon')
+    .sort();
 
 type MenuChild = {
     id: number; name: string; icon: string | null; route: string | null;
@@ -48,7 +44,6 @@ type MenuChild = {
 };
 
 type MenuItem = MenuChild & { children: MenuChild[] };
-
 type ParentOption = { id: number; name: string };
 
 type Props = {
@@ -66,28 +61,238 @@ const emptyForm: FormData = {
     parent_id: '', order: '0', is_active: true,
 };
 
+function LucideIcon({ name, className }: { name: string; className?: string }) {
+    const Icon = (LucideIcons as unknown as Record<string, React.FC<{ className?: string }>>)[name];
+    if (!Icon) return null;
+    return <Icon className={className} />;
+}
+
+// Inline icon picker — tidak pakai Popover/Portal agar tidak konflik dengan Dialog focus trap
+function IconPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+    const [open, setOpen]     = useState(false);
+    const [search, setSearch] = useState('');
+    const searchRef           = useRef<HTMLInputElement>(null);
+
+    const filtered = ALL_ICONS.filter((ic: string) =>
+        ic.toLowerCase().includes(search.toLowerCase())
+    );
+
+    const handleSelect = (ic: string) => {
+        onChange(ic);
+        setOpen(false);
+        setSearch('');
+    };
+
+    const handleClear = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onChange('');
+        setOpen(false);
+        setSearch('');
+    };
+
+    return (
+        <div className="relative">
+            {/* Trigger */}
+            <button
+                type="button"
+                onClick={() => {
+                    setOpen((o) => !o);
+                    setTimeout(() => searchRef.current?.focus(), 50);
+                }}
+                className="border-input flex h-9 w-full items-center justify-between rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-colors hover:bg-accent focus:outline-none"
+            >
+                <span className="flex items-center gap-2">
+                    {value ? (
+                        <>
+                            <LucideIcon name={value} className="h-4 w-4 shrink-0" />
+                            <span>{value}</span>
+                        </>
+                    ) : (
+                        <span className="text-muted-foreground">Pilih icon...</span>
+                    )}
+                </span>
+                <span className="flex items-center gap-1">
+                    {value && (
+                        <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={handleClear}
+                            onKeyDown={(e) => e.key === 'Enter' && handleClear(e as unknown as React.MouseEvent)}
+                            className="text-muted-foreground hover:text-foreground rounded p-0.5"
+                        >
+                            <X className="h-3 w-3" />
+                        </span>
+                    )}
+                    <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${open ? 'rotate-90' : ''}`} />
+                </span>
+            </button>
+
+            {/* Inline dropdown — render di dalam DOM Dialog, tidak ada Portal */}
+            {open && (
+                <div className="border-input bg-popover z-10 mt-1 w-full rounded-md border p-2 shadow-md">
+                    {/* Search */}
+                    <div className="relative mb-2">
+                        <Search className="text-muted-foreground absolute top-1/2 left-2 h-3.5 w-3.5 -translate-y-1/2" />
+                        <Input
+                            ref={searchRef}
+                            placeholder="Cari icon..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="h-8 pl-7 text-sm"
+                        />
+                    </div>
+
+                    {/* Grid icon */}
+                    <div className="grid max-h-44 grid-cols-8 gap-0.5 overflow-y-auto pr-1">
+                        {filtered.map((ic: string) => (
+                            <button
+                                key={ic}
+                                type="button"
+                                title={ic}
+                                onClick={() => handleSelect(ic)}
+                                className={`flex items-center justify-center rounded p-1.5 transition-colors hover:bg-accent ${
+                                    value === ic
+                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                                        : ''
+                                }`}
+                            >
+                                <LucideIcon name={ic} className="h-4 w-4" />
+                            </button>
+                        ))}
+                        {filtered.length === 0 && (
+                            <p className="text-muted-foreground col-span-8 py-3 text-center text-xs">
+                                Tidak ditemukan
+                            </p>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Di luar MenusIndex agar tidak remount saat state parent berubah
+type MenuFormProps = {
+    data: FormData;
+    errors: Partial<Record<keyof FormData, string>>;
+    parents: ParentOption[];
+    setData: (key: keyof FormData, value: string | boolean) => void;
+};
+
+function MenuForm({ data, errors, parents, setData }: MenuFormProps) {
+    return (
+        <div className="flex flex-col gap-4 py-2">
+            {/* Nama */}
+            <div className="flex flex-col gap-1.5">
+                <Label htmlFor="m-name">Nama Menu <span className="text-destructive">*</span></Label>
+                <Input
+                    id="m-name"
+                    value={data.name}
+                    onChange={(e) => setData('name', e.target.value)}
+                    aria-invalid={!!errors.name}
+                    autoComplete="off"
+                />
+                {errors.name && <p className="text-destructive text-xs">{errors.name}</p>}
+            </div>
+
+            {/* Icon */}
+            <div className="flex flex-col gap-1.5">
+                <Label>Icon</Label>
+                <IconPicker value={data.icon} onChange={(v) => setData('icon', v)} />
+            </div>
+
+            {/* Route + Permission */}
+            <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="m-route">Route Name</Label>
+                    <Input
+                        id="m-route"
+                        value={data.route}
+                        onChange={(e) => setData('route', e.target.value)}
+                        placeholder="admin.users.index"
+                        autoComplete="off"
+                    />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="m-permission">Permission</Label>
+                    <Input
+                        id="m-permission"
+                        value={data.permission}
+                        onChange={(e) => setData('permission', e.target.value)}
+                        placeholder="users.view"
+                        autoComplete="off"
+                    />
+                </div>
+            </div>
+
+            {/* Parent + Order */}
+            <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2 flex flex-col gap-1.5">
+                    <Label>Parent Menu</Label>
+                    <Select
+                        value={data.parent_id || '_none'}
+                        onValueChange={(v) => setData('parent_id', v === '_none' ? '' : v)}
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Top level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="_none">— Top Level —</SelectItem>
+                            {parents.map((p) => (
+                                <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="m-order">Order</Label>
+                    <Input
+                        id="m-order"
+                        type="number"
+                        min="0"
+                        value={data.order}
+                        onChange={(e) => setData('order', e.target.value)}
+                    />
+                </div>
+            </div>
+
+            {/* Active toggle */}
+            <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                    <p className="text-sm font-medium">Aktif</p>
+                    <p className="text-muted-foreground text-xs">Tampil di sidebar navigasi</p>
+                </div>
+                <Switch
+                    checked={data.is_active}
+                    onCheckedChange={(v) => setData('is_active', v)}
+                />
+            </div>
+        </div>
+    );
+}
+
 export default function MenusIndex({ menus, parents }: Props) {
-    const [createOpen, setCreateOpen] = useState(false);
-    const [editTarget, setEditTarget] = useState<MenuItem | MenuChild | null>(null);
+    const [createOpen, setCreateOpen]     = useState(false);
+    const [editTarget, setEditTarget]     = useState<MenuItem | MenuChild | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<MenuItem | MenuChild | null>(null);
 
     const form = useForm<FormData>(emptyForm);
 
     const openCreate = () => {
-        form.setData(emptyForm);
+        form.reset();
         form.clearErrors();
         setCreateOpen(true);
     };
 
     const openEdit = (item: MenuItem | MenuChild) => {
         form.setData({
-            name: item.name,
-            icon: item.icon ?? '',
-            route: item.route ?? '',
+            name:       item.name,
+            icon:       item.icon ?? '',
+            route:      item.route ?? '',
             permission: item.permission ?? '',
-            parent_id: item.parent_id ? String(item.parent_id) : '',
-            order: String(item.order),
-            is_active: item.is_active,
+            parent_id:  item.parent_id ? String(item.parent_id) : '',
+            order:      String(item.order),
+            is_active:  item.is_active,
         });
         form.clearErrors();
         setEditTarget(item);
@@ -122,83 +327,31 @@ export default function MenusIndex({ menus, parents }: Props) {
     const moveItem = (items: MenuItem[], index: number, dir: 'up' | 'down') => {
         const swapIndex = dir === 'up' ? index - 1 : index + 1;
         if (swapIndex < 0 || swapIndex >= items.length) return;
-
         const updated = items.map((m, i) => {
-            if (i === index) return { id: m.id, order: items[swapIndex].order };
+            if (i === index)     return { id: m.id, order: items[swapIndex].order };
             if (i === swapIndex) return { id: m.id, order: items[index].order };
             return { id: m.id, order: m.order };
         });
-
         router.patch('/admin/menus/reorder', { items: updated }, { preserveScroll: true });
     };
 
     const moveChild = (children: MenuChild[], index: number, dir: 'up' | 'down') => {
         const swapIndex = dir === 'up' ? index - 1 : index + 1;
         if (swapIndex < 0 || swapIndex >= children.length) return;
-
         const updated = children.map((c, i) => {
-            if (i === index) return { id: c.id, order: children[swapIndex].order };
+            if (i === index)     return { id: c.id, order: children[swapIndex].order };
             if (i === swapIndex) return { id: c.id, order: children[index].order };
             return { id: c.id, order: c.order };
         });
-
         router.patch('/admin/menus/reorder', { items: updated }, { preserveScroll: true });
     };
 
-    const MenuForm = () => (
-        <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="m-name">Name *</Label>
-                    <Input id="m-name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} aria-invalid={!!form.errors.name} />
-                    {form.errors.name && <p className="text-destructive text-xs">{form.errors.name}</p>}
-                </div>
-                <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="m-icon">Icon</Label>
-                    <Select value={form.data.icon || '_none'} onValueChange={(v) => form.setData('icon', v === '_none' ? '' : v)}>
-                        <SelectTrigger id="m-icon" className="w-full"><SelectValue placeholder="Pilih icon" /></SelectTrigger>
-                        <SelectContent className="max-h-48">
-                            <SelectItem value="_none">— Tidak ada —</SelectItem>
-                            {AVAILABLE_ICONS.map((ic) => <SelectItem key={ic} value={ic}>{ic}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="m-route">Route Name</Label>
-                    <Input id="m-route" value={form.data.route} onChange={(e) => form.setData('route', e.target.value)} placeholder="admin.users.index" />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="m-permission">Permission</Label>
-                    <Input id="m-permission" value={form.data.permission} onChange={(e) => form.setData('permission', e.target.value)} placeholder="users.view" />
-                </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="m-parent">Parent Menu</Label>
-                    <Select value={form.data.parent_id || '_none'} onValueChange={(v) => form.setData('parent_id', v === '_none' ? '' : v)}>
-                        <SelectTrigger id="m-parent" className="w-full"><SelectValue placeholder="Top level" /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="_none">— Top Level —</SelectItem>
-                            {parents.map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="m-order">Order</Label>
-                    <Input id="m-order" type="number" min="0" value={form.data.order} onChange={(e) => form.setData('order', e.target.value)} />
-                </div>
-            </div>
-            <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                    <p className="text-sm font-medium">Active</p>
-                    <p className="text-muted-foreground text-xs">Tampil di sidebar</p>
-                </div>
-                <Switch checked={form.data.is_active} onCheckedChange={(v) => form.setData('is_active', v)} />
-            </div>
-        </div>
-    );
+    const sharedFormProps: MenuFormProps = {
+        data:    form.data,
+        errors:  form.errors,
+        parents,
+        setData: (key, value) => form.setData(key, value as never),
+    };
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
@@ -208,26 +361,30 @@ export default function MenusIndex({ menus, parents }: Props) {
                         <h1 className="text-2xl font-semibold tracking-tight">Menu Management</h1>
                         <p className="text-muted-foreground text-sm">{menus.length} top-level menus</p>
                     </div>
-                    <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Add Menu</Button>
+                    <Button onClick={openCreate}>
+                        <Plus className="mr-2 h-4 w-4" />Add Menu
+                    </Button>
                 </div>
 
                 <div className="rounded-lg border">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-24">Order</TableHead>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Icon</TableHead>
+                                <TableHead className="w-20">Order</TableHead>
+                                <TableHead>Nama</TableHead>
+                                <TableHead className="w-12">Icon</TableHead>
                                 <TableHead>Route</TableHead>
                                 <TableHead>Permission</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead className="w-20">Status</TableHead>
                                 <TableHead className="w-20" />
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {menus.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-muted-foreground py-12 text-center">No menus found.</TableCell>
+                                    <TableCell colSpan={7} className="text-muted-foreground py-12 text-center">
+                                        Belum ada menu.
+                                    </TableCell>
                                 </TableRow>
                             ) : (
                                 menus.map((menu, idx) => (
@@ -244,7 +401,12 @@ export default function MenusIndex({ menus, parents }: Props) {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="font-medium">{menu.name}</TableCell>
-                                            <TableCell className="text-muted-foreground text-sm">{menu.icon ?? '—'}</TableCell>
+                                            <TableCell>
+                                                {menu.icon
+                                                    ? <span title={menu.icon}><LucideIcon name={menu.icon} className="h-4 w-4" /></span>
+                                                    : <span className="text-muted-foreground">—</span>
+                                                }
+                                            </TableCell>
                                             <TableCell className="font-mono text-xs">{menu.route ?? '—'}</TableCell>
                                             <TableCell className="text-xs">{menu.permission ?? '—'}</TableCell>
                                             <TableCell>
@@ -274,7 +436,12 @@ export default function MenusIndex({ menus, parents }: Props) {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="pl-8 text-sm">↳ {child.name}</TableCell>
-                                                <TableCell className="text-muted-foreground text-sm">{child.icon ?? '—'}</TableCell>
+                                                <TableCell>
+                                                    {child.icon
+                                                        ? <span title={child.icon}><LucideIcon name={child.icon} className="h-4 w-4" /></span>
+                                                        : <span className="text-muted-foreground">—</span>
+                                                    }
+                                                </TableCell>
                                                 <TableCell className="font-mono text-xs">{child.route ?? '—'}</TableCell>
                                                 <TableCell className="text-xs">{child.permission ?? '—'}</TableCell>
                                                 <TableCell>
@@ -302,14 +469,17 @@ export default function MenusIndex({ menus, parents }: Props) {
 
             {/* Create Dialog */}
             <Dialog open={createOpen} onOpenChange={(o) => { if (!o) { setCreateOpen(false); form.reset(); } }}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="sm:max-w-md overflow-visible">
                     <DialogHeader>
                         <DialogTitle>Tambah Menu</DialogTitle>
-                        <DialogDescription>Isi detail menu baru.</DialogDescription>
+                        <DialogDescription>Isi detail menu baru yang akan tampil di sidebar.</DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleCreate}><MenuForm />
+                    <form onSubmit={handleCreate}>
+                        <MenuForm {...sharedFormProps} />
                         <DialogFooter className="mt-4">
-                            <DialogClose asChild><Button variant="outline" type="button">Batal</Button></DialogClose>
+                            <DialogClose asChild>
+                                <Button variant="outline" type="button">Batal</Button>
+                            </DialogClose>
                             <Button type="submit" disabled={form.processing}>Simpan</Button>
                         </DialogFooter>
                     </form>
@@ -318,14 +488,19 @@ export default function MenusIndex({ menus, parents }: Props) {
 
             {/* Edit Dialog */}
             <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="sm:max-w-md overflow-visible">
                     <DialogHeader>
                         <DialogTitle>Edit Menu</DialogTitle>
-                        <DialogDescription>Update detail menu <strong>{editTarget?.name}</strong>.</DialogDescription>
+                        <DialogDescription>
+                            Update detail menu <strong>{editTarget?.name}</strong>.
+                        </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleEdit}><MenuForm />
+                    <form onSubmit={handleEdit}>
+                        <MenuForm {...sharedFormProps} />
                         <DialogFooter className="mt-4">
-                            <DialogClose asChild><Button variant="outline" type="button">Batal</Button></DialogClose>
+                            <DialogClose asChild>
+                                <Button variant="outline" type="button">Batal</Button>
+                            </DialogClose>
                             <Button type="submit" disabled={form.processing}>Update</Button>
                         </DialogFooter>
                     </form>
@@ -334,13 +509,13 @@ export default function MenusIndex({ menus, parents }: Props) {
 
             {/* Delete Dialog */}
             <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-sm">
                     <DialogHeader>
                         <DialogTitle>Hapus Menu</DialogTitle>
                         <DialogDescription>
-                            Hapus menu <strong>{deleteTarget?.name}</strong>?
+                            Hapus menu <strong>{deleteTarget?.name}</strong>? Aksi ini tidak bisa dibatalkan.
                             {(deleteTarget as MenuItem)?.children?.length > 0 && (
-                                <span className="text-destructive ml-1">Menu ini memiliki submenu!</span>
+                                <span className="text-destructive ml-1 block mt-1">⚠ Menu ini memiliki submenu yang ikut terhapus.</span>
                             )}
                         </DialogDescription>
                     </DialogHeader>
