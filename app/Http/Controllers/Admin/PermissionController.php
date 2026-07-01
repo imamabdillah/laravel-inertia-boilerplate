@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\StorePermissionRequest;
+use App\Models\Menu;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,19 +15,27 @@ class PermissionController extends Controller
 {
     public function index(Request $request): Response
     {
-        $roles = Role::orderBy('name')->get()
-            ->map(fn (Role $r) => ['id' => $r->id, 'name' => $r->name]);
+        // Resources diambil dari permission field di menus
+        $menuResources = Menu::whereNotNull('permission')
+            ->where('permission', '!=', '')
+            ->pluck('permission')
+            ->map(fn ($p) => explode('.', $p)[0])
+            ->unique()
+            ->sort()
+            ->values();
 
+        $roles          = Role::orderBy('name')->get()->map(fn ($r) => ['id' => $r->id, 'name' => $r->name]);
         $selectedRoleId = $request->integer('role_id') ?: ($roles->first()['id'] ?? null);
         $selectedRole   = $selectedRoleId ? Role::find($selectedRoleId) : null;
         $assignedNames  = $selectedRole
             ? $selectedRole->permissions->pluck('name')->flip()->toArray()
             : [];
 
-        $permissions = Permission::withCount('roles')
+        $groups = Permission::withCount('roles')
             ->when($request->search, fn ($q, $s) => $q->where('name', 'ilike', "%{$s}%"))
             ->orderBy('name')
             ->get()
+            ->filter(fn ($p) => $menuResources->contains(explode('.', $p->name)[0]))
             ->groupBy(fn ($p) => explode('.', $p->name)[0])
             ->map(fn ($items, $group) => [
                 'group'       => $group,
@@ -41,20 +49,11 @@ class PermissionController extends Controller
             ->values();
 
         return Inertia::render('admin/permissions/index', [
-            'groups'         => $permissions,
+            'groups'         => $groups,
             'roles'          => $roles,
             'selectedRoleId' => $selectedRoleId,
             'filters'        => $request->only(['search', 'role_id']),
         ]);
-    }
-
-    public function store(StorePermissionRequest $request): RedirectResponse
-    {
-        $permission = Permission::create(['name' => $request->name, 'guard_name' => 'web']);
-
-        activity()->causedBy(auth()->user())->on($permission)->log('created');
-
-        return back()->with('success', "Permission \"{$permission->name}\" berhasil dibuat.");
     }
 
     public function destroy(Permission $permission): RedirectResponse
@@ -65,7 +64,6 @@ class PermissionController extends Controller
         }
 
         activity()->causedBy(auth()->user())->on($permission)->log('deleted');
-
         $permission->delete();
 
         return back()->with('success', "Permission \"{$permission->name}\" berhasil dihapus.");
