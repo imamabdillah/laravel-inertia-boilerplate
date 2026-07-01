@@ -41,7 +41,6 @@ Route::prefix('admin')
         Route::patch('roles/{role}/sync-permissions', [RoleController::class, 'syncPermissions'])->name('roles.sync-permissions');
 
         Route::get('permissions', [PermissionController::class, 'index'])->name('permissions.index');
-        Route::post('permissions', [PermissionController::class, 'store'])->name('permissions.store');
         Route::delete('permissions/{permission}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
 
         Route::get('menus', [MenuController::class, 'index'])->name('menus.index');

@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Permission\Models\Permission;
 
 class MenuController extends Controller
 {
@@ -38,6 +39,8 @@ class MenuController extends Controller
 
         $menu = Menu::create($data);
 
+        $this->syncPermissionFromMenu($data['permission'] ?? null);
+
         activity()->causedBy(auth()->user())->on($menu)->log('created');
 
         return back()->with('success', "Menu \"{$menu->name}\" berhasil dibuat.");
@@ -45,11 +48,21 @@ class MenuController extends Controller
 
     public function update(UpdateMenuRequest $request, Menu $menu): RedirectResponse
     {
-        $menu->update($request->validated());
+        $data = $request->validated();
+        $menu->update($data);
+
+        $this->syncPermissionFromMenu($data['permission'] ?? null);
 
         activity()->causedBy(auth()->user())->on($menu)->log('updated');
 
         return back()->with('success', "Menu \"{$menu->name}\" berhasil diperbarui.");
+    }
+
+    private function syncPermissionFromMenu(?string $permission): void
+    {
+        if (filled($permission)) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        }
     }
 
     public function destroy(Menu $menu): RedirectResponse
