@@ -67,3 +67,52 @@ export type TwoFactorSetupData = {
 export type TwoFactorSecretKey = {
     secretKey: string;
 };
+
+export type DokumenMitra = {
+    id: number;
+    mitra_id: number;
+    jenis_dokumen: string;
+    wajib: boolean;
+    nama_file: string;
+    file_path: string;
+    file_url: string;
+    file_type: string;
+    file_size: number;
+    file_size_formatted: string;
+    status: 'menunggu' | 'diterima' | 'ditolak';
+    catatan: string | null;
+    created_at: string;
+};
+
+export type Mitra = {
+    id: number;
+    user_id: string;
+    nama_lembaga: string;
+    jenis_lembaga: string;
+    bidang_kerja: string;
+    deskripsi: string | null;
+    alamat: string | null;
+    kota: string | null;
+    provinsi: string | null;
+    kode_pos: string | null;
+    website: string | null;
+    telepon: string;
+    email_lembaga: string;
+    pic_nama: string;
+    pic_jabatan: string;
+    pic_telepon: string;
+    pic_email: string;
+    nomor_akta: string | null;
+    nomor_nib: string | null;
+    nomor_npwp: string | null;
+    status: 'draft' | 'menunggu_verifikasi' | 'diverifikasi' | 'ditolak' | 'aktif' | 'nonaktif';
+    catatan_admin: string | null;
+    verified_at: string | null;
+    logo: string | null;
+    is_profile_complete: boolean;
+    is_documents_complete: boolean;
+    can_submit: boolean;
+    dokumens?: DokumenMitra[];
+    created_at: string;
+    updated_at: string;
+};

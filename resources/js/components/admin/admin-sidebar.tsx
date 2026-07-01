@@ -25,11 +25,21 @@ import type { MenuItem } from '@/types';
 
 function routeNameToUrl(routeName: string | null): string {
     if (!routeName) return '#';
+    // Path langsung (sudah diawali /) — pakai apa adanya
+    if (routeName.startsWith('/')) return routeName;
+    // Route name admin.* → /admin/...
+    if (routeName.startsWith('admin.')) {
+        const path = routeName
+            .replace(/^admin\./, '')
+            .replace(/\.index$/, '')
+            .replace(/\./g, '/');
+        return '/admin/' + path;
+    }
+    // Route name lain (misal mitra.*) → /segment/...
     const path = routeName
-        .replace(/^admin\./, '')
         .replace(/\.index$/, '')
         .replace(/\./g, '/');
-    return '/admin/' + path;
+    return '/' + path;
 }
 
 function NavMenuItems({ items }: { items: MenuItem[] }) {

@@ -19,6 +19,8 @@ class RolePermissionSeeder extends Seeder
             'menus.view', 'menus.create', 'menus.edit', 'menus.delete',
             'settings.view', 'settings.edit',
             'activity-log.view',
+            'mitra.view', 'mitra.verify', 'mitra.reject',
+            'mitra.profil',
         ];
 
         foreach ($permissions as $permission) {
@@ -36,6 +38,10 @@ class RolePermissionSeeder extends Seeder
             'menus.view',
             'settings.view',
             'activity-log.view',
+            'mitra.view', 'mitra.verify', 'mitra.reject',
         ]);
+
+        $mitra = Role::firstOrCreate(['name' => 'mitra', 'guard_name' => 'web']);
+        $mitra->syncPermissions(['mitra.profil']);
     }
 }

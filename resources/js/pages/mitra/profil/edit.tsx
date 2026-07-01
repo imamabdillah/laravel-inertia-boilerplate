@@ -33,12 +33,12 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import AdminLayout from '@/layouts/admin-layout';
+import MitraLayout from '@/layouts/mitra-layout';
+import profil from '@/routes/mitra/profil';
 import type { BreadcrumbItem, DokumenMitra, Mitra } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Profil Mitra', href: '/mitra/profil' },
+    { title: 'Profil Mitra', href: profil.show().url },
 ];
 
 type Props = {
@@ -263,7 +263,7 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib }: Props) {
     const canSubmit = mitra.can_submit && mitra.status === 'draft';
 
     return (
-        <AdminLayout breadcrumbs={breadcrumbs}>
+        <MitraLayout breadcrumbs={breadcrumbs}>
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 max-w-4xl mx-auto">
 
                 {/* Header */}
@@ -556,6 +556,6 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib }: Props) {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </AdminLayout>
+        </MitraLayout>
     );
 }
