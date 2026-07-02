@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateMenuRequest;
 use App\Models\Menu;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Permission;
@@ -60,8 +61,14 @@ class MenuController extends Controller
 
     private function syncPermissionFromMenu(?string $permission): void
     {
-        if (filled($permission)) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        if (! filled($permission)) {
+            return;
+        }
+
+        $resource = Str::beforeLast($permission, '.');
+
+        foreach (['view', 'create', 'edit', 'delete'] as $action) {
+            Permission::firstOrCreate(['name' => "{$resource}.{$action}", 'guard_name' => 'web']);
         }
     }
 

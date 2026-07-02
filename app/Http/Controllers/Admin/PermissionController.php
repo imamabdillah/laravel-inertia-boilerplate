@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Menu;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Permission;
@@ -15,11 +16,12 @@ class PermissionController extends Controller
 {
     public function index(Request $request): Response
     {
-        // Resources diambil dari permission field di menus
+        // Resources diambil dari permission field di menus — support n-level depth.
+        // 'users.view' → resource 'users', 'mitra.profil.view' → resource 'mitra.profil'
         $menuResources = Menu::whereNotNull('permission')
             ->where('permission', '!=', '')
             ->pluck('permission')
-            ->map(fn ($p) => explode('.', $p)[0])
+            ->map(fn ($p) => Str::beforeLast($p, '.'))
             ->unique()
             ->sort()
             ->values();
@@ -31,12 +33,15 @@ class PermissionController extends Controller
             ? $selectedRole->permissions->pluck('name')->flip()->toArray()
             : [];
 
+        $standardActions = ['view', 'create', 'edit', 'delete'];
+
         $groups = Permission::withCount('roles')
             ->when($request->search, fn ($q, $s) => $q->where('name', 'ilike', "%{$s}%"))
             ->orderBy('name')
             ->get()
-            ->filter(fn ($p) => $menuResources->contains(explode('.', $p->name)[0]))
-            ->groupBy(fn ($p) => explode('.', $p->name)[0])
+            ->filter(fn ($p) => $menuResources->contains(Str::beforeLast($p->name, '.')))
+            ->filter(fn ($p) => in_array(Str::afterLast($p->name, '.'), $standardActions))
+            ->groupBy(fn ($p) => Str::beforeLast($p->name, '.'))
             ->map(fn ($items, $group) => [
                 'group'       => $group,
                 'permissions' => $items->map(fn ($p) => [

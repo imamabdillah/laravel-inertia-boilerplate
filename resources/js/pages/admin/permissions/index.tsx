@@ -33,13 +33,8 @@ type Props = {
     filters: { search?: string; role_id?: string };
 };
 
-const ACTION_ORDER = ['view', 'create', 'edit', 'update', 'delete'];
-
-function sortActions(actions: string[]): string[] {
-    const known = ACTION_ORDER.filter((a) => actions.includes(a));
-    const rest  = actions.filter((a) => !ACTION_ORDER.includes(a)).sort();
-    return [...known, ...rest];
-}
+const STANDARD_ACTIONS = ['view', 'create', 'edit', 'delete'] as const;
+type StandardAction = typeof STANDARD_ACTIONS[number];
 
 export default function PermissionsIndex({ groups, roles, selectedRoleId, filters }: Props) {
     const [search, setSearch]           = useState(filters.search ?? '');
@@ -68,9 +63,7 @@ export default function PermissionsIndex({ groups, roles, selectedRoleId, filter
         return () => clearTimeout(t);
     }, [search]);
 
-    const allActions = sortActions([
-        ...new Set(groups.flatMap((g) => g.permissions.map((p) => p.name.split('.')[1]).filter(Boolean))),
-    ]);
+    const allActions: StandardAction[] = [...STANDARD_ACTIONS];
 
     const handleRoleSelect = (roleId: number) => {
         router.get('/admin/permissions', { role_id: roleId, search: search || undefined }, { preserveState: false });
@@ -196,7 +189,10 @@ export default function PermissionsIndex({ groups, roles, selectedRoleId, filter
                             <tbody>
                                 {groups.map((group) => {
                                     const permMap = new Map(
-                                        group.permissions.map((p) => [p.name.split('.')[1], p])
+                                        group.permissions.map((p) => {
+                                            const parts = p.name.split('.');
+                                            return [parts[parts.length - 1], p];
+                                        })
                                     );
                                     const assignedCount = group.permissions.filter((p) => assignedNames.has(p.name)).length;
                                     const allChecked = group.permissions.length > 0 &&
