@@ -1,7 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(php artisan *)"
+      "Bash(php artisan *)",
+      "Bash(python3 -c ' *)",
+      "Bash(node -e ' *)",
+      "Bash(npm run *)",
+      "PowerShell(php artisan debug:mitra 2>&1)",
+      "PowerShell(php artisan tinker --execute=\"dump\\(\\\\App\\\\Models\\\\Mitra::find\\(1\\)->only\\(['nama_lembaga','kode_pos','website','jenjang','wilayah','upt','updated_at']\\)\\);\" 2>&1)",
+      "PowerShell(php artisan debug:mitra)",
+      "Bash(npx tsc *)",
+      "Bash(grep -n 'function toResponse\\\\|function wrap\\\\|\\\\$wrap' d:/Github/laravel-inertia-boilerplate/vendor/laravel/framework/src/Illuminate/Http/Resources/Json/ResourceResponse.php d:/Github/laravel-inertia-boilerplate/vendor/laravel/framework/src/Illuminate/Http/Resources/Json/JsonResource.php)",
+      "Bash(grep -n \"upload_max_filesize\\\\|post_max_size\" \"C:/Users/Imam/.config/herd/bin/php83/php.ini\" 2>&1)",
+      "Read(//c/Users/Imam/.config/herd/bin/php83/**)",
+      "PowerShell(php artisan debug:dok)"
     ]
   }
 }

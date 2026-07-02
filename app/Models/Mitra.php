@@ -16,6 +16,9 @@ class Mitra extends Model
         'nama_lembaga',
         'jenis_lembaga',
         'bidang_kerja',
+        'jenjang',
+        'wilayah',
+        'upt',
         'deskripsi',
         'alamat',
         'kota',
@@ -40,9 +43,18 @@ class Mitra extends Model
 
     protected $casts = [
         'verified_at' => 'datetime',
+        'jenjang' => 'array',
+        'wilayah' => 'array',
+        'upt' => 'array',
     ];
 
-    const DOKUMEN_WAJIB = ['ad_art', 'akta_pendirian'];
+    const DOKUMEN_WAJIB = ['surat_pengajuan', 'proposal_kerja_sama', 'dokumen_legalitas', 'profil_perusahaan'];
+
+    const JENJANG_OPTIONS = ['paud_tk', 'sd', 'smp', 'sma', 'smk'];
+
+    const WILAYAH_OPTIONS = ['jawa_barat'];
+
+    const UPT_OPTIONS = ['bgtk_jawa_barat'];
 
     public function user(): BelongsTo
     {

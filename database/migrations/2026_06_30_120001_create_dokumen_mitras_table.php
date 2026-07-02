@@ -12,15 +12,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('mitra_id')->constrained('mitras')->cascadeOnDelete();
             $table->enum('jenis_dokumen', [
-                'ad_art',
-                'akta_pendirian',
-                'sk_pendirian',
-                'sk_penandatangan',
-                'nib',
-                'npwp',
-                'profil_lembaga',
-                'logo',
-                'lainnya',
+                'surat_pengajuan',
+                'proposal_kerja_sama',
+                'dokumen_legalitas',
+                'profil_perusahaan',
             ]);
             $table->boolean('wajib')->default(true);
             $table->string('nama_file');

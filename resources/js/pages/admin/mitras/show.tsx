@@ -24,6 +24,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AdminLayout from '@/layouts/admin-layout';
+import { JENJANG_LABELS, UPT_LABELS, WILAYAH_LABELS } from '@/lib/mitra-tags';
 import type { BreadcrumbItem, DokumenMitra, Mitra } from '@/types';
 
 type LogEntry = {
@@ -54,15 +55,10 @@ const DOK_STATUS: Record<string, { label: string; className: string }> = {
 };
 
 const DOKUMEN_LABELS: Record<string, string> = {
-    ad_art:           'AD/ART',
-    akta_pendirian:   'Akta Pendirian',
-    sk_pendirian:     'SK Pendirian',
-    sk_penandatangan: 'SK Penandatangan',
-    nib:              'NIB',
-    npwp:             'NPWP',
-    profil_lembaga:   'Profil Lembaga',
-    logo:             'Logo',
-    lainnya:          'Lainnya',
+    surat_pengajuan:      'Surat Pengajuan Kerja Sama',
+    proposal_kerja_sama:  'Proposal Kerja Sama',
+    dokumen_legalitas:    'Dokumen Legalitas',
+    profil_perusahaan:    'Profil Perusahaan',
 };
 
 const JENIS_LABELS: Record<string, string> = {
@@ -244,6 +240,19 @@ export default function AdminMitraShow({ mitra, logs }: Props) {
                 <Card>
                     <CardHeader><CardTitle className="text-base">Dokumen</CardTitle></CardHeader>
                     <CardContent>
+                        {(mitra.jenjang?.length || mitra.wilayah?.length || mitra.upt?.length) ? (
+                            <div className="flex flex-wrap gap-1.5 mb-4 pb-4 border-b">
+                                {mitra.jenjang?.map((v) => (
+                                    <Badge key={`jenjang-${v}`} variant="outline">{JENJANG_LABELS[v] ?? v}</Badge>
+                                ))}
+                                {mitra.wilayah?.map((v) => (
+                                    <Badge key={`wilayah-${v}`} variant="secondary">{WILAYAH_LABELS[v] ?? v}</Badge>
+                                ))}
+                                {mitra.upt?.map((v) => (
+                                    <Badge key={`upt-${v}`} variant="secondary">{UPT_LABELS[v] ?? v}</Badge>
+                                ))}
+                            </div>
+                        ) : null}
                         {(!mitra.dokumens || mitra.dokumens.length === 0) ? (
                             <p className="text-sm text-muted-foreground">Belum ada dokumen diupload.</p>
                         ) : (

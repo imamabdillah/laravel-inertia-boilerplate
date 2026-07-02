@@ -21,9 +21,8 @@ export function AdminHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem
                     onClick={() => updateAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark')}
                     className="h-8 w-8"
                 >
-                    {resolvedAppearance === 'dark'
-                        ? <Sun className="h-4 w-4" />
-                        : <Moon className="h-4 w-4" />}
+                    <Sun className="h-4 w-4 dark:hidden" />
+                    <Moon className="hidden h-4 w-4 dark:block" />
                 </Button>
             </div>
         </header>

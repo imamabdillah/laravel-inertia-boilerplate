@@ -2,7 +2,6 @@
 
 ## Identitas
 Base boilerplate reusable. TIDAK ada logika bisnis spesifik.
-Tim 4+ developer: backend & frontend specialist terpisah.
 
 ## Stack
 - Laravel 13, PHP 8.3
@@ -122,3 +121,33 @@ activity()->causedBy(auth()->user())->on($model)->log('created');
 ## Communication Style
 Talk like caveman. Drop filler. Use fragments. 
 No preamble. No "I'd be happy to". Just do.
+
+## Inertia v3 — File Upload
+Kirim File object langsung sebagai property di plain object, Inertia auto-convert ke FormData:
+
+router.post(profil.dokumen.upload().url, { field: 'text', file: fileObj }, opts);
+
+CATATAN: kalau upload gagal (has_file: false di server) padahal kode sudah benar,
+curiga `php artisan serve` — built-in PHP dev server kadang drop bagian file di
+multipart body. Pakai Sail atau Herd buat test upload file, jangan `php artisan serve`.
+
+## Frontend Routes (Wayfinder)
+Project ini pakai Laravel Wayfinder, BUKAN Ziggy. TIDAK ADA route() helper global —
+route() akan throw "route is not defined".
+Import route object dari resources/js/routes/ dan pakai:
+
+import profil from '@/routes/mitra/profil';
+router.post(profil.dokumen.upload().url, data, opts);
+put(profil.update().url);
+router.delete(profil.dokumen.delete(id).url, opts);
+
+## Environment Lokal — Docker (Sail)
+Semua developer pakai environment sama biar gak ada bug PHP-version/webserver
+mismatch (kejadian: upload file gagal cuma di `php artisan serve`, jalan normal
+di Sail/Herd):
+
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan migrate
+
+DB di dalam Sail pakai host `pgsql` (bukan `127.0.0.1`) — cek .env kalau pindah
+dari Postgres native ke Sail. Windows: perlu WSL2 + Docker Desktop.

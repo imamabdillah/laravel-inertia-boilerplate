@@ -42,6 +42,11 @@ class ProfilController extends Controller
         return Inertia::render('mitra/profil/edit', [
             'mitra'          => new MitraResource($mitra),
             'dokumen_wajib'  => Mitra::DOKUMEN_WAJIB,
+            'tag_options'    => [
+                'jenjang' => Mitra::JENJANG_OPTIONS,
+                'wilayah' => Mitra::WILAYAH_OPTIONS,
+                'upt'     => Mitra::UPT_OPTIONS,
+            ],
         ]);
     }
 
@@ -58,10 +63,25 @@ class ProfilController extends Controller
 
     public function uploadDokumen(Request $request): RedirectResponse
     {
-        $request->validate([
-            'jenis_dokumen' => ['required', 'in:ad_art,akta_pendirian,sk_pendirian,sk_penandatangan,nib,npwp,profil_lembaga,logo,lainnya'],
-            'file'          => ['required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png'],
+        \Log::info('DEBUG upload', [
+            'jenis_dokumen' => $request->input('jenis_dokumen'),
+            'has_file' => $request->hasFile('file'),
+            'file_valid' => $request->hasFile('file') ? $request->file('file')->isValid() : null,
+            'file_error' => $request->hasFile('file') ? $request->file('file')->getError() : null,
+            'file_mime' => $request->hasFile('file') ? $request->file('file')->getMimeType() : null,
+            'file_ext' => $request->hasFile('file') ? $request->file('file')->getClientOriginalExtension() : null,
+            'file_size' => $request->hasFile('file') ? $request->file('file')->getSize() : null,
         ]);
+
+        try {
+            $request->validate([
+                'jenis_dokumen' => ['required', 'in:surat_pengajuan,proposal_kerja_sama,dokumen_legalitas,profil_perusahaan'],
+                'file'          => ['required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png'],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::info('DEBUG upload validation failed', $e->errors());
+            throw $e;
+        }
 
         $mitra = $this->getMitraForAuth();
 

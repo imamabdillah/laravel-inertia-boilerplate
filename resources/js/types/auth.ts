@@ -90,6 +90,9 @@ export type Mitra = {
     nama_lembaga: string;
     jenis_lembaga: string;
     bidang_kerja: string;
+    jenjang: string[];
+    wilayah: string[];
+    upt: string[];
     deskripsi: string | null;
     alamat: string | null;
     kota: string | null;

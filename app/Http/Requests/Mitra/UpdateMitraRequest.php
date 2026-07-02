@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Mitra;
 
+use App\Models\Mitra;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateMitraRequest extends FormRequest
 {
@@ -17,6 +19,12 @@ class UpdateMitraRequest extends FormRequest
             'nama_lembaga'  => ['required', 'string', 'max:255'],
             'jenis_lembaga' => ['required', 'in:perguruan_tinggi,lembaga_pelatihan,perusahaan,lsm,instansi_pemerintah,lainnya'],
             'bidang_kerja'  => ['required', 'string', 'max:255'],
+            'jenjang'       => ['nullable', 'array'],
+            'jenjang.*'     => [Rule::in(Mitra::JENJANG_OPTIONS)],
+            'wilayah'       => ['nullable', 'array'],
+            'wilayah.*'     => [Rule::in(Mitra::WILAYAH_OPTIONS)],
+            'upt'           => ['nullable', 'array'],
+            'upt.*'         => [Rule::in(Mitra::UPT_OPTIONS)],
             'deskripsi'     => ['nullable', 'string'],
             'alamat'        => ['nullable', 'string'],
             'kota'          => ['nullable', 'string', 'max:100'],

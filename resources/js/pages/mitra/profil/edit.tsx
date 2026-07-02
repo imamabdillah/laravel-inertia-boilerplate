@@ -2,11 +2,13 @@ import { router, useForm } from '@inertiajs/react';
 import {
     AlertCircle,
     CheckCircle2,
+    ChevronsUpDown,
     Clock,
     FileText,
     Loader2,
     Trash2,
     Upload,
+    X,
     XCircle,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -14,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogClose,
@@ -25,6 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
     Select,
     SelectContent,
@@ -34,6 +38,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import MitraLayout from '@/layouts/mitra-layout';
+import { JENJANG_LABELS, UPT_LABELS, WILAYAH_LABELS } from '@/lib/mitra-tags';
 import profil from '@/routes/mitra/profil';
 import type { BreadcrumbItem, DokumenMitra, Mitra } from '@/types';
 
@@ -41,9 +46,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Profil Mitra', href: profil.show().url },
 ];
 
+type TagOptions = {
+    jenjang: string[];
+    wilayah: string[];
+    upt: string[];
+};
+
 type Props = {
     mitra: Mitra;
     dokumen_wajib: string[];
+    tag_options: TagOptions;
 };
 
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ReactNode }> = {
@@ -71,18 +83,100 @@ const JENIS_LEMBAGA_OPTIONS = [
 ];
 
 const DOKUMEN_LABELS: Record<string, string> = {
-    ad_art:           'AD/ART',
-    akta_pendirian:   'Akta Pendirian',
-    sk_pendirian:     'SK Pendirian',
-    sk_penandatangan: 'SK Penandatangan',
-    nib:              'NIB',
-    npwp:             'NPWP',
-    profil_lembaga:   'Profil Lembaga',
-    logo:             'Logo',
-    lainnya:          'Lainnya',
+    surat_pengajuan:      'Surat Pengajuan Kerja Sama',
+    proposal_kerja_sama:  'Proposal Kerja Sama',
+    dokumen_legalitas:    'Dokumen Legalitas',
+    profil_perusahaan:    'Profil Perusahaan',
 };
 
-const DOKUMEN_OPSIONAL = ['sk_pendirian', 'sk_penandatangan', 'nib', 'npwp', 'profil_lembaga', 'logo'];
+function TagMultiSelect({
+    label,
+    options,
+    labels,
+    selected,
+    onChange,
+    disabled,
+}: {
+    label: string;
+    options: string[];
+    labels: Record<string, string>;
+    selected: string[];
+    onChange: (value: string[]) => void;
+    disabled: boolean;
+}) {
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState('');
+
+    const toggle = (value: string, checked: boolean) => {
+        onChange(checked ? [...selected, value] : selected.filter((v) => v !== value));
+    };
+
+    const filtered = options.filter((value) =>
+        (labels[value] ?? value).toLowerCase().includes(query.toLowerCase())
+    );
+
+    return (
+        <div>
+            <Label className="mb-2 block">{label}</Label>
+            <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        role="combobox"
+                        disabled={disabled}
+                        className="w-full justify-between font-normal"
+                    >
+                        <span className="truncate text-left text-muted-foreground">
+                            {selected.length > 0 ? `${selected.length} dipilih` : `Pilih ${label.toLowerCase()}`}
+                        </span>
+                        <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-2" align="start">
+                    <Input
+                        placeholder="Cari..."
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        className="mb-2 h-8"
+                    />
+                    <div className="max-h-60 overflow-y-auto flex flex-col gap-0.5">
+                        {filtered.length === 0 && (
+                            <p className="text-xs text-muted-foreground px-2 py-1.5">Tidak ditemukan</p>
+                        )}
+                        {filtered.map((value) => (
+                            <div
+                                key={value}
+                                onClick={() => toggle(value, !selected.includes(value))}
+                                className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent cursor-pointer"
+                            >
+                                <Checkbox checked={selected.includes(value)} className="pointer-events-none" />
+                                {labels[value] ?? value}
+                            </div>
+                        ))}
+                    </div>
+                </PopoverContent>
+            </Popover>
+            {selected.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                    {selected.map((value) => (
+                        <Badge key={value} variant="secondary" className="gap-1 pr-1">
+                            {labels[value] ?? value}
+                            <button
+                                type="button"
+                                onClick={() => toggle(value, false)}
+                                disabled={disabled}
+                                className="ml-0.5 rounded-full hover:text-destructive disabled:pointer-events-none"
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
 
 function DokumenUploadCard({
     jenis,
@@ -184,11 +278,14 @@ function DokumenUploadCard({
     );
 }
 
-export default function MitraProfilEdit({ mitra, dokumen_wajib }: Props) {
+export default function MitraProfilEdit({ mitra, dokumen_wajib, tag_options }: Props) {
     const { data, setData, put, processing, errors } = useForm({
         nama_lembaga:  mitra.nama_lembaga ?? '',
         jenis_lembaga: mitra.jenis_lembaga ?? '',
         bidang_kerja:  mitra.bidang_kerja ?? '',
+        jenjang:       mitra.jenjang ?? [],
+        wilayah:       mitra.wilayah ?? [],
+        upt:           mitra.upt ?? [],
         deskripsi:     mitra.deskripsi ?? '',
         alamat:        mitra.alamat ?? '',
         kota:          mitra.kota ?? '',
@@ -227,24 +324,25 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib }: Props) {
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
-        put('/mitra/profil');
+        put(profil.update().url);
     };
 
     const handleUpload = (jenis: string, file: File) => {
         setUploadingJenis(jenis);
-        const form = new FormData();
-        form.append('jenis_dokumen', jenis);
-        form.append('file', file);
-        router.post('/mitra/profil/dokumen', form, {
-            forceFormData: true,
-            preserveScroll: true,
-            onFinish: () => setUploadingJenis(null),
-        });
+        router.post(
+            profil.dokumen.upload().url,
+            { jenis_dokumen: jenis, file },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => setUploadingJenis(null),
+            }
+        );
     };
 
     const handleDelete = () => {
         if (!deleteTarget) return;
-        router.delete(`/mitra/profil/dokumen/${deleteTarget.id}`, {
+        router.delete(profil.dokumen.delete(deleteTarget.id).url, {
             preserveScroll: true,
             onFinish: () => setDeleteTarget(null),
         });
@@ -252,7 +350,7 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib }: Props) {
 
     const handleSubmit = () => {
         setSubmitting(true);
-        router.post('/mitra/profil/submit', {}, {
+        router.post(profil.submit().url, {}, {
             preserveScroll: true,
             onFinish: () => setSubmitting(false),
         });
@@ -466,28 +564,41 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib }: Props) {
                         <CardDescription>Dokumen berikut harus diupload sebelum bisa submit</CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-3">
-                        {dokumen_wajib.map((jenis) => (
-                            <DokumenUploadCard
-                                key={jenis}
-                                jenis={jenis}
-                                label={DOKUMEN_LABELS[jenis] ?? jenis}
-                                dokumen={dokumenMap[jenis]}
-                                onUpload={handleUpload}
-                                onDelete={setDeleteTarget}
-                                uploading={uploadingJenis === jenis}
+                        <div className="grid gap-4 rounded-lg border p-4">
+                            <TagMultiSelect
+                                label="Jenjang"
+                                options={tag_options.jenjang}
+                                labels={JENJANG_LABELS}
+                                selected={data.jenjang}
+                                onChange={(v) => setData('jenjang', v)}
+                                disabled={!canEdit}
                             />
-                        ))}
-                    </CardContent>
-                </Card>
-
-                {/* Section 6: Dokumen Opsional */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Dokumen Opsional</CardTitle>
-                        <CardDescription>Dokumen pendukung tambahan (tidak wajib)</CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-3">
-                        {DOKUMEN_OPSIONAL.map((jenis) => (
+                            <TagMultiSelect
+                                label="Wilayah / Daerah"
+                                options={tag_options.wilayah}
+                                labels={WILAYAH_LABELS}
+                                selected={data.wilayah}
+                                onChange={(v) => setData('wilayah', v)}
+                                disabled={!canEdit}
+                            />
+                            <TagMultiSelect
+                                label="UPT"
+                                options={tag_options.upt}
+                                labels={UPT_LABELS}
+                                selected={data.upt}
+                                onChange={(v) => setData('upt', v)}
+                                disabled={!canEdit}
+                            />
+                            {canEdit && (
+                                <div className="flex justify-end">
+                                    <Button type="button" size="sm" disabled={processing} onClick={() => put(profil.update().url)}>
+                                        {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Simpan Tag
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                        {dokumen_wajib.map((jenis) => (
                             <DokumenUploadCard
                                 key={jenis}
                                 jenis={jenis}
