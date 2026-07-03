@@ -28,8 +28,8 @@ class MenuController extends Controller
             ->get(['id', 'name']);
 
         return Inertia::render('admin/menus/index', [
-            'menus'   => $menus,
-            'parents' => $parents,
+            'allMenus' => $menus,
+            'parents'  => $parents,
         ]);
     }
 
