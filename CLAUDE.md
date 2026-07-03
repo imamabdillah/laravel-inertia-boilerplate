@@ -118,6 +118,33 @@ Setiap modul (Users, Roles, Permissions, Menus) pakai pola sama:
 Setiap create/update/delete di Controller WAJIB log:
 activity()->causedBy(auth()->user())->on($model)->log('created');
 
+## Frontend Routes — Wayfinder (BUKAN Ziggy)
+Project ini pakai Laravel Wayfinder. TIDAK ADA `route()` helper global — akan throw `ReferenceError: route is not defined`.
+
+Import route object dari `resources/js/routes/` dan pakai `.url`:
+```ts
+import { index, store } from '@/routes/admin/users';
+router.get(index().url, filters, { preserveState: true });
+router.post(store().url, data);
+```
+
+File di `resources/js/routes/**` auto-generated dari `web.php`. Jangan edit manual.
+
+## Inertia v3 — File Upload
+Kirim `File` object langsung sebagai property di plain object — Inertia auto-convert ke FormData:
+```ts
+router.post(url, { field: 'text', file: fileObj }, opts);
+```
+Jangan bikin `FormData` manual + `forceFormData: true`. Kalau upload gagal (`has_file: false`), curiga `php artisan serve` — pakai Sail atau Herd.
+
+## Environment — Docker/Sail
+Semua developer wajib pakai Sail (bukan `php artisan serve`):
+```bash
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan migrate
+```
+`DB_HOST=pgsql` (nama service di compose.yaml), bukan `127.0.0.1`. Windows: perlu WSL2 + Docker Desktop.
+
 ## Communication Style
 Talk like caveman. Drop filler. Use fragments. 
 No preamble. No "I'd be happy to". Just do.

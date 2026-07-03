@@ -2,46 +2,44 @@
 
 namespace Database\Seeders;
 
+use App\Models\Menu;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RolePermissionSeeder extends Seeder
 {
+    use WithoutModelEvents;
+
     public function run(): void
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $permissions = [
-            'users.view', 'users.create', 'users.edit', 'users.delete',
-            'roles.view', 'roles.create', 'roles.edit', 'roles.delete',
-            'permissions.view', 'permissions.create', 'permissions.delete',
-            'menus.view', 'menus.create', 'menus.edit', 'menus.delete',
-            'settings.view', 'settings.edit',
-            'activity-log.view',
-            'mitra.view', 'mitra.verify', 'mitra.reject',
-            'mitra.profil',
-        ];
+        // Derive resources from menus — no hardcoded permissions needed.
+        // Each menu with a permission field generates 4 standard permissions.
+        $resources = Menu::whereNotNull('permission')
+            ->where('permission', '!=', '')
+            ->pluck('permission')
+            ->map(fn ($p) => Str::beforeLast($p, '.'))
+            ->unique()
+            ->values();
 
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        foreach ($resources as $resource) {
+            foreach (['view', 'create', 'edit', 'delete'] as $action) {
+                Permission::firstOrCreate(['name' => "{$resource}.{$action}", 'guard_name' => 'web']);
+            }
         }
 
         $superAdmin = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
         $superAdmin->syncPermissions(Permission::all());
 
+        // Admin gets view-only on all resources by default.
+        // Extend via Permission Management UI as needed.
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $admin->syncPermissions([
-            'users.view', 'users.create', 'users.edit',
-            'roles.view',
-            'permissions.view',
-            'menus.view',
-            'settings.view',
-            'activity-log.view',
-            'mitra.view', 'mitra.verify', 'mitra.reject',
-        ]);
-
-        $mitra = Role::firstOrCreate(['name' => 'mitra', 'guard_name' => 'web']);
-        $mitra->syncPermissions(['mitra.profil']);
+        $admin->syncPermissions(
+            Permission::where('name', 'like', '%.view')->get()
+        );
     }
 }

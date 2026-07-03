@@ -47,7 +47,7 @@ type MenuItem = MenuChild & { children: MenuChild[] };
 type ParentOption = { id: number; name: string };
 
 type Props = {
-    menus: MenuItem[];
+    allMenus: MenuItem[];
     parents: ParentOption[];
 };
 
@@ -271,7 +271,7 @@ function MenuForm({ data, errors, parents, setData }: MenuFormProps) {
     );
 }
 
-export default function MenusIndex({ menus, parents }: Props) {
+export default function MenusIndex({ allMenus, parents }: Props) {
     const [createOpen, setCreateOpen]     = useState(false);
     const [editTarget, setEditTarget]     = useState<MenuItem | MenuChild | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<MenuItem | MenuChild | null>(null);
@@ -359,7 +359,7 @@ export default function MenusIndex({ menus, parents }: Props) {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight">Menu Management</h1>
-                        <p className="text-muted-foreground text-sm">{menus.length} top-level menus</p>
+                        <p className="text-muted-foreground text-sm">{allMenus.length} top-level menus</p>
                     </div>
                     <Button onClick={openCreate}>
                         <Plus className="mr-2 h-4 w-4" />Add Menu
@@ -380,22 +380,22 @@ export default function MenusIndex({ menus, parents }: Props) {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {menus.length === 0 ? (
+                            {allMenus.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={7} className="text-muted-foreground py-12 text-center">
                                         Belum ada menu.
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                menus.map((menu, idx) => (
+                                allMenus.map((menu, idx) => (
                                     <>
                                         <TableRow key={menu.id} className="bg-muted/20">
                                             <TableCell>
                                                 <div className="flex gap-1">
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6" disabled={idx === 0} onClick={() => moveItem(menus, idx, 'up')}>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" disabled={idx === 0} onClick={() => moveItem(allMenus, idx, 'up')}>
                                                         <ChevronUp className="h-3 w-3" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6" disabled={idx === menus.length - 1} onClick={() => moveItem(menus, idx, 'down')}>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" disabled={idx === allMenus.length - 1} onClick={() => moveItem(allMenus, idx, 'down')}>
                                                         <ChevronDown className="h-3 w-3" />
                                                     </Button>
                                                 </div>
