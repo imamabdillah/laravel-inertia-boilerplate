@@ -18,13 +18,12 @@ class PermissionController extends Controller
     {
         // Resources diambil dari permission field di menus — support n-level depth.
         // 'users.view' → resource 'users', 'mitra.profil.view' → resource 'mitra.profil'
-        $menuResources = Menu::whereNotNull('permission')
+        $menusByResource = Menu::whereNotNull('permission')
             ->where('permission', '!=', '')
-            ->pluck('permission')
-            ->map(fn ($p) => Str::beforeLast($p, '.'))
-            ->unique()
-            ->sort()
-            ->values();
+            ->get()
+            ->keyBy(fn (Menu $m) => Str::beforeLast($m->permission, '.'));
+
+        $menuResources = $menusByResource->keys()->sort()->values();
 
         $roles          = Role::orderBy('name')->get()->map(fn ($r) => ['id' => $r->id, 'name' => $r->name]);
         $selectedRoleId = $request->integer('role_id') ?: ($roles->first()['id'] ?? null);
@@ -44,6 +43,7 @@ class PermissionController extends Controller
             ->groupBy(fn ($p) => Str::beforeLast($p->name, '.'))
             ->map(fn ($items, $group) => [
                 'group'       => $group,
+                'name'        => $menusByResource->get($group)?->name,
                 'permissions' => $items->map(fn ($p) => [
                     'id'          => $p->id,
                     'name'        => $p->name,
