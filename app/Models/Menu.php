@@ -13,6 +13,7 @@ class Menu extends Model
 
     protected $fillable = [
         'name',
+        'group_id',
         'icon',
         'route',
         'permission',
@@ -32,6 +33,11 @@ class Menu extends Model
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Menu::class, 'parent_id');
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(MenuGroup::class, 'group_id');
     }
 
     public function children(): HasMany

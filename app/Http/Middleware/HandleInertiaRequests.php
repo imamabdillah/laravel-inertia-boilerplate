@@ -27,33 +27,36 @@ class HandleInertiaRequests extends Middleware
             // Using the same source ensures sidebar visibility is always in sync
             // with what auth.permissions says the user has.
             $permissionSet = $user->getAllPermissions()->pluck('name')->flip()->toArray();
-            $permissions   = array_keys($permissionSet);
+            $permissions = array_keys($permissionSet);
 
-            $canSee = fn (?string $permission): bool =>
-                $permission === null || isset($permissionSet[$permission]);
+            $canSee = fn (?string $permission): bool => $permission === null || isset($permissionSet[$permission]);
 
             $menus = Menu::where('is_active', true)
                 ->whereNull('parent_id')
                 ->orderBy('order')
-                ->with(['children' => fn ($q) => $q->where('is_active', true)->orderBy('order')])
+                ->with([
+                    'group',
+                    'children' => fn ($q) => $q->where('is_active', true)->orderBy('order'),
+                ])
                 ->get()
                 ->filter(fn (Menu $menu) => $canSee($menu->permission))
                 ->map(fn (Menu $menu) => [
-                    'id'         => $menu->id,
-                    'name'       => $menu->name,
-                    'icon'       => $menu->icon,
-                    'route'      => $menu->route,
+                    'id' => $menu->id,
+                    'name' => $menu->name,
+                    'group' => $menu->group?->name,
+                    'icon' => $menu->icon,
+                    'route' => $menu->route,
                     'permission' => $menu->permission,
-                    'order'      => $menu->order,
-                    'children'   => $menu->children
+                    'order' => $menu->order,
+                    'children' => $menu->children
                         ->filter(fn (Menu $child) => $canSee($child->permission))
                         ->map(fn (Menu $child) => [
-                            'id'         => $child->id,
-                            'name'       => $child->name,
-                            'icon'       => $child->icon,
-                            'route'      => $child->route,
+                            'id' => $child->id,
+                            'name' => $child->name,
+                            'icon' => $child->icon,
+                            'route' => $child->route,
                             'permission' => $child->permission,
-                            'order'      => $child->order,
+                            'order' => $child->order,
                         ])
                         ->values(),
                 ])
@@ -65,11 +68,11 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $user ? array_merge($user->toArray(), [
-                    'roles'       => $user->getRoleNames()->toArray(),
+                    'roles' => $user->getRoleNames()->toArray(),
                     'permissions' => $permissions,
                 ]) : null,
             ],
-            'menus'       => $menus,
+            'menus' => $menus,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

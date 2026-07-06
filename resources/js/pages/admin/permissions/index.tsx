@@ -23,7 +23,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 type PermItem   = { id: number; name: string; roles_count: number; assigned: boolean };
-type GroupItem  = { group: string; permissions: PermItem[] };
+type GroupItem  = { group: string; name: string | null; permissions: PermItem[] };
 type RoleOption = { id: number; name: string };
 
 type Props = {
@@ -178,6 +178,7 @@ export default function PermissionsIndex({ groups, roles, selectedRoleId, filter
                             <thead>
                                 <tr className="bg-muted/50 border-b">
                                     <th className="px-4 py-3 text-left font-semibold">Resource</th>
+                                    <th className="px-4 py-3 text-left font-semibold">Nama Menu</th>
                                     {allActions.map((action) => (
                                         <th key={action} className="px-4 py-3 text-center font-medium capitalize min-w-16">
                                             {action}
@@ -210,6 +211,7 @@ export default function PermissionsIndex({ groups, roles, selectedRoleId, filter
                                                     <span className="font-medium capitalize">{group.group}</span>
                                                 </label>
                                             </td>
+                                            <td className="px-4 py-3 text-muted-foreground">{group.name ?? '—'}</td>
                                             {allActions.map((action) => {
                                                 const perm   = permMap.get(action);
                                                 const exists = !!perm;
