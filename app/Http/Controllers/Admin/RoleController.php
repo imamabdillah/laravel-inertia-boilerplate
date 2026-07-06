@@ -21,14 +21,14 @@ class RoleController extends Controller
             ->orderBy('name')
             ->get()
             ->map(fn (Role $role) => [
-                'id'                => $role->id,
-                'name'              => $role->name,
-                'users_count'       => $role->users_count,
+                'id' => $role->id,
+                'name' => $role->name,
+                'users_count' => $role->users_count,
                 'permissions_count' => $role->permissions_count,
             ]);
 
         return Inertia::render('admin/roles/index', [
-            'roles'   => $roles,
+            'roles' => $roles,
             'filters' => $request->only(['search']),
         ]);
     }
@@ -39,13 +39,17 @@ class RoleController extends Controller
 
         activity()->causedBy(auth()->user())->on($role)->log('created');
 
-        return back()->with('success', "Role \"{$role->name}\" berhasil dibuat.");
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Role \"{$role->name}\" berhasil dibuat."]);
+
+        return back();
     }
 
     public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
     {
         if ($role->name === 'super_admin') {
-            return back()->with('error', 'Role super_admin tidak bisa diubah.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'Role super_admin tidak bisa diubah.']);
+
+            return back();
         }
 
         $old = $role->name;
@@ -53,23 +57,31 @@ class RoleController extends Controller
 
         activity()->causedBy(auth()->user())->on($role)->log('updated');
 
-        return back()->with('success', "Role \"{$old}\" diubah menjadi \"{$role->name}\".");
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Role \"{$old}\" diubah menjadi \"{$role->name}\"."]);
+
+        return back();
     }
 
     public function destroy(Role $role): RedirectResponse
     {
         if ($role->name === 'super_admin') {
-            return back()->with('error', 'Role super_admin tidak bisa dihapus.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'Role super_admin tidak bisa dihapus.']);
+
+            return back();
         }
 
         if ($role->users()->count() > 0) {
-            return back()->with('error', "Role \"{$role->name}\" masih dipakai {$role->users()->count()} user.");
+            Inertia::flash('toast', ['type' => 'error', 'message' => "Role \"{$role->name}\" masih dipakai {$role->users()->count()} user."]);
+
+            return back();
         }
 
         activity()->causedBy(auth()->user())->on($role)->log('deleted');
         $role->delete();
 
-        return back()->with('success', 'Role berhasil dihapus.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Role berhasil dihapus.']);
+
+        return back();
     }
 
     public function syncPermissions(SyncPermissionsRequest $request, Role $role): RedirectResponse
@@ -78,6 +90,8 @@ class RoleController extends Controller
 
         activity()->causedBy(auth()->user())->on($role)->log('permissions_synced');
 
-        return back()->with('success', "Permission role \"{$role->name}\" berhasil disimpan.");
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Permission role \"{$role->name}\" berhasil disimpan."]);
+
+        return back();
     }
 }

@@ -25,10 +25,10 @@ class PermissionController extends Controller
 
         $menuResources = $menusByResource->keys()->sort()->values();
 
-        $roles          = Role::orderBy('name')->get()->map(fn ($r) => ['id' => $r->id, 'name' => $r->name]);
+        $roles = Role::orderBy('name')->get()->map(fn ($r) => ['id' => $r->id, 'name' => $r->name]);
         $selectedRoleId = $request->integer('role_id') ?: ($roles->first()['id'] ?? null);
-        $selectedRole   = $selectedRoleId ? Role::find($selectedRoleId) : null;
-        $assignedNames  = $selectedRole
+        $selectedRole = $selectedRoleId ? Role::find($selectedRoleId) : null;
+        $assignedNames = $selectedRole
             ? $selectedRole->permissions->pluck('name')->flip()->toArray()
             : [];
 
@@ -42,22 +42,22 @@ class PermissionController extends Controller
             ->filter(fn ($p) => in_array(Str::afterLast($p->name, '.'), $standardActions))
             ->groupBy(fn ($p) => Str::beforeLast($p->name, '.'))
             ->map(fn ($items, $group) => [
-                'group'       => $group,
-                'name'        => $menusByResource->get($group)?->name,
+                'group' => $group,
+                'name' => $menusByResource->get($group)?->name,
                 'permissions' => $items->map(fn ($p) => [
-                    'id'          => $p->id,
-                    'name'        => $p->name,
+                    'id' => $p->id,
+                    'name' => $p->name,
                     'roles_count' => $p->roles_count,
-                    'assigned'    => isset($assignedNames[$p->name]),
+                    'assigned' => isset($assignedNames[$p->name]),
                 ])->values(),
             ])
             ->values();
 
         return Inertia::render('admin/permissions/index', [
-            'groups'         => $groups,
-            'roles'          => $roles,
+            'groups' => $groups,
+            'roles' => $roles,
             'selectedRoleId' => $selectedRoleId,
-            'filters'        => $request->only(['search', 'role_id']),
+            'filters' => $request->only(['search', 'role_id']),
         ]);
     }
 
@@ -65,12 +65,16 @@ class PermissionController extends Controller
     {
         if ($permission->roles()->count() > 0) {
             $roleNames = $permission->roles->pluck('name')->join(', ');
-            return back()->with('error', "Permission masih dipakai role: {$roleNames}.");
+            Inertia::flash('toast', ['type' => 'error', 'message' => "Permission masih dipakai role: {$roleNames}."]);
+
+            return back();
         }
 
         activity()->causedBy(auth()->user())->on($permission)->log('deleted');
         $permission->delete();
 
-        return back()->with('success', "Permission \"{$permission->name}\" berhasil dihapus.");
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Permission \"{$permission->name}\" berhasil dihapus."]);
+
+        return back();
     }
 }

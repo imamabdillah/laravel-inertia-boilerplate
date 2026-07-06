@@ -55,8 +55,9 @@ class UserController extends Controller
 
         activity()->causedBy(auth()->user())->on($user)->log('created');
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User berhasil dibuat.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'User berhasil dibuat.']);
+
+        return redirect()->route('admin.users.index');
     }
 
     public function edit(User $user): Response
@@ -84,27 +85,34 @@ class UserController extends Controller
 
         activity()->causedBy(auth()->user())->on($user)->log('updated');
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User berhasil diperbarui.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'User berhasil diperbarui.']);
+
+        return redirect()->route('admin.users.index');
     }
 
     public function destroy(User $user): RedirectResponse
     {
         if ($user->id === auth()->id()) {
-            return back()->with('error', 'Tidak bisa hapus akun sendiri.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'Tidak bisa hapus akun sendiri.']);
+
+            return back();
         }
 
         activity()->causedBy(auth()->user())->on($user)->log('deleted');
 
         $user->delete();
 
-        return back()->with('success', 'User berhasil dihapus.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'User berhasil dihapus.']);
+
+        return back();
     }
 
     public function toggleActive(User $user): RedirectResponse
     {
         if ($user->id === auth()->id()) {
-            return back()->with('error', 'Tidak bisa nonaktifkan akun sendiri.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'Tidak bisa nonaktifkan akun sendiri.']);
+
+            return back();
         }
 
         $user->update(['is_active' => ! $user->is_active]);
@@ -112,7 +120,9 @@ class UserController extends Controller
         activity()->causedBy(auth()->user())->on($user)
             ->log($user->is_active ? 'activated' : 'deactivated');
 
-        return back()->with('success', 'Status user berhasil diubah.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Status user berhasil diubah.']);
+
+        return back();
     }
 
     public function resetPassword(User $user): RedirectResponse
@@ -121,6 +131,8 @@ class UserController extends Controller
 
         activity()->causedBy(auth()->user())->on($user)->log('password_reset');
 
-        return back()->with('success', 'Password user berhasil direset ke "password".');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Password user berhasil direset ke "password".']);
+
+        return back();
     }
 }

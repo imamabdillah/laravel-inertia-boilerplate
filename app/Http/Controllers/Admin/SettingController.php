@@ -17,9 +17,9 @@ class SettingController extends Controller
 
         $grouped = $settings->groupBy('group')
             ->map(fn ($items, $group) => [
-                'group'    => $group,
+                'group' => $group,
                 'settings' => $items->map(fn (Setting $s) => [
-                    'key'   => $s->key,
+                    'key' => $s->key,
                     'value' => $s->value,
                     'group' => $s->group,
                 ])->values(),
@@ -39,6 +39,8 @@ class SettingController extends Controller
 
         activity()->causedBy(auth()->user())->log('settings_updated');
 
-        return back()->with('success', 'Settings berhasil disimpan.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Settings berhasil disimpan.']);
+
+        return back();
     }
 }

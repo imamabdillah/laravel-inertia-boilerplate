@@ -29,7 +29,7 @@ class MenuController extends Controller
 
         return Inertia::render('admin/menus/index', [
             'allMenus' => $menus,
-            'parents'  => $parents,
+            'parents' => $parents,
         ]);
     }
 
@@ -44,7 +44,9 @@ class MenuController extends Controller
 
         activity()->causedBy(auth()->user())->on($menu)->log('created');
 
-        return back()->with('success', "Menu \"{$menu->name}\" berhasil dibuat.");
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Menu \"{$menu->name}\" berhasil dibuat."]);
+
+        return back();
     }
 
     public function update(UpdateMenuRequest $request, Menu $menu): RedirectResponse
@@ -56,7 +58,9 @@ class MenuController extends Controller
 
         activity()->causedBy(auth()->user())->on($menu)->log('updated');
 
-        return back()->with('success', "Menu \"{$menu->name}\" berhasil diperbarui.");
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Menu \"{$menu->name}\" berhasil diperbarui."]);
+
+        return back();
     }
 
     private function syncPermissionFromMenu(?string $permission): void
@@ -75,14 +79,18 @@ class MenuController extends Controller
     public function destroy(Menu $menu): RedirectResponse
     {
         if ($menu->children()->count() > 0) {
-            return back()->with('error', 'Menu masih memiliki submenu. Hapus submenu terlebih dahulu.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'Menu masih memiliki submenu. Hapus submenu terlebih dahulu.']);
+
+            return back();
         }
 
         activity()->causedBy(auth()->user())->on($menu)->log('deleted');
 
         $menu->delete();
 
-        return back()->with('success', 'Menu berhasil dihapus.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Menu berhasil dihapus.']);
+
+        return back();
     }
 
     public function toggleActive(Menu $menu): RedirectResponse
@@ -92,14 +100,16 @@ class MenuController extends Controller
         activity()->causedBy(auth()->user())->on($menu)
             ->log($menu->is_active ? 'activated' : 'deactivated');
 
-        return back()->with('success', 'Status menu berhasil diubah.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Status menu berhasil diubah.']);
+
+        return back();
     }
 
     public function reorder(Request $request): RedirectResponse
     {
         $request->validate([
-            'items'        => ['required', 'array'],
-            'items.*.id'   => ['required', 'integer', 'exists:menus,id'],
+            'items' => ['required', 'array'],
+            'items.*.id' => ['required', 'integer', 'exists:menus,id'],
             'items.*.order' => ['required', 'integer', 'min:0'],
         ]);
 
@@ -107,20 +117,22 @@ class MenuController extends Controller
             Menu::where('id', $item['id'])->update(['order' => $item['order']]);
         }
 
-        return back()->with('success', 'Urutan menu berhasil disimpan.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Urutan menu berhasil disimpan.']);
+
+        return back();
     }
 
     private function formatMenu(Menu $menu, bool $withChildren = false): array
     {
         $data = [
-            'id'         => $menu->id,
-            'name'       => $menu->name,
-            'icon'       => $menu->icon,
-            'route'      => $menu->route,
+            'id' => $menu->id,
+            'name' => $menu->name,
+            'icon' => $menu->icon,
+            'route' => $menu->route,
             'permission' => $menu->permission,
-            'parent_id'  => $menu->parent_id,
-            'order'      => $menu->order,
-            'is_active'  => $menu->is_active,
+            'parent_id' => $menu->parent_id,
+            'order' => $menu->order,
+            'is_active' => $menu->is_active,
         ];
 
         if ($withChildren) {
