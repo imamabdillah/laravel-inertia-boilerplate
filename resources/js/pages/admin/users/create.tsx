@@ -1,18 +1,12 @@
 import { Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Save } from 'lucide-react';
-import AdminLayout from '@/layouts/admin-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import AdminLayout from '@/layouts/admin-layout';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -29,9 +23,13 @@ export default function UserCreate({ roles }: Props) {
         email: '',
         password: '',
         password_confirmation: '',
-        role: '',
+        roles: [] as string[],
         is_active: true as boolean,
     });
+
+    const toggleRole = (role: string, checked: boolean) => {
+        setData('roles', checked ? [...data.roles, role] : data.roles.filter((r) => r !== role));
+    };
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -109,18 +107,20 @@ export default function UserCreate({ roles }: Props) {
                             </div>
 
                             <div className="flex flex-col gap-1.5">
-                                <Label htmlFor="role">Role</Label>
-                                <Select value={data.role} onValueChange={(v) => setData('role', v)}>
-                                    <SelectTrigger id="role" aria-invalid={!!errors.role} className="w-full">
-                                        <SelectValue placeholder="Select role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {roles.map((r) => (
-                                            <SelectItem key={r} value={r}>{r}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.role && <p className="text-destructive text-sm">{errors.role}</p>}
+                                <Label>Roles</Label>
+                                <div className="flex flex-col gap-2 rounded-lg border p-3">
+                                    {roles.map((r) => (
+                                        <div key={r} className="flex items-center gap-2">
+                                            <Checkbox
+                                                id={`role-${r}`}
+                                                checked={data.roles.includes(r)}
+                                                onCheckedChange={(checked) => toggleRole(r, checked === true)}
+                                            />
+                                            <Label htmlFor={`role-${r}`} className="font-normal">{r}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                                {errors.roles && <p className="text-destructive text-sm">{errors.roles}</p>}
                             </div>
 
                             <div className="flex items-center justify-between rounded-lg border p-4">

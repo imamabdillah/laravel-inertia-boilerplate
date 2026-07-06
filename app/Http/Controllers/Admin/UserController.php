@@ -20,7 +20,7 @@ class UserController extends Controller
         $users = User::with('roles')
             ->when($request->search, fn ($q, $search) => $q->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
-                  ->orWhere('email', 'ilike', "%{$search}%");
+                    ->orWhere('email', 'ilike', "%{$search}%");
             }))
             ->when($request->role, fn ($q, $role) => $q->role($role))
             ->when($request->status !== null && $request->status !== '', fn ($q) => $q->where('is_active', $request->status === '1'))
@@ -29,8 +29,8 @@ class UserController extends Controller
             ->withQueryString();
 
         return Inertia::render('admin/users/index', [
-            'users'   => UserResource::collection($users),
-            'roles'   => Role::orderBy('name')->pluck('name'),
+            'users' => UserResource::collection($users),
+            'roles' => Role::orderBy('name')->pluck('name'),
             'filters' => $request->only(['search', 'role', 'status']),
         ]);
     }
@@ -45,13 +45,13 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $user = User::create([
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'password'  => $request->password,
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $request->password,
             'is_active' => $request->boolean('is_active', true),
         ]);
 
-        $user->assignRole($request->role);
+        $user->assignRole($request->roles);
 
         activity()->causedBy(auth()->user())->on($user)->log('created');
 
@@ -62,7 +62,7 @@ class UserController extends Controller
     public function edit(User $user): Response
     {
         return Inertia::render('admin/users/edit', [
-            'user'  => new UserResource($user->load('roles')),
+            'user' => new UserResource($user->load('roles')),
             'roles' => Role::orderBy('name')->pluck('name'),
         ]);
     }
@@ -70,8 +70,8 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         $data = [
-            'name'      => $request->name,
-            'email'     => $request->email,
+            'name' => $request->name,
+            'email' => $request->email,
             'is_active' => $request->boolean('is_active', true),
         ];
 
@@ -80,7 +80,7 @@ class UserController extends Controller
         }
 
         $user->update($data);
-        $user->syncRoles([$request->role]);
+        $user->syncRoles($request->roles);
 
         activity()->causedBy(auth()->user())->on($user)->log('updated');
 
