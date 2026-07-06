@@ -42,6 +42,26 @@ function routeNameToUrl(routeName: string | null): string {
     return '/' + path;
 }
 
+const DEFAULT_GROUP_LABEL = 'Navigation';
+
+function groupMenus(items: MenuItem[]): { label: string; items: MenuItem[] }[] {
+    const order: string[] = [];
+    const buckets = new Map<string, MenuItem[]>();
+
+    for (const item of items) {
+        const label = item.group?.trim() || DEFAULT_GROUP_LABEL;
+
+        if (!buckets.has(label)) {
+            buckets.set(label, []);
+            order.push(label);
+        }
+
+        buckets.get(label)!.push(item);
+    }
+
+    return order.map((label) => ({ label, items: buckets.get(label)! }));
+}
+
 function NavMenuItems({ items }: { items: MenuItem[] }) {
     const { url } = usePage();
 
@@ -104,8 +124,13 @@ function NavMenuItems({ items }: { items: MenuItem[] }) {
     );
 }
 
+type PageProps = {
+    menus: MenuItem[];
+};
+
 export function AdminSidebar() {
-    const { menus } = usePage().props;
+    const { menus } = usePage<PageProps>().props;
+    const groups = groupMenus(menus ?? []);
 
     return (
         <Sidebar collapsible="icon" variant="sidebar">
@@ -130,12 +155,14 @@ export function AdminSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <SidebarGroup>
-                    <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-                    <SidebarGroupContent>
-                        <NavMenuItems items={menus ?? []} />
-                    </SidebarGroupContent>
-                </SidebarGroup>
+                {groups.map((group) => (
+                    <SidebarGroup key={group.label}>
+                        <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+                        <SidebarGroupContent>
+                            <NavMenuItems items={group.items} />
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                ))}
             </SidebarContent>
 
             <SidebarFooter>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreMenuRequest;
 use App\Http\Requests\Admin\UpdateMenuRequest;
 use App\Models\Menu;
+use App\Models\MenuGroup;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -17,7 +18,7 @@ class MenuController extends Controller
 {
     public function index(): Response
     {
-        $menus = Menu::with('children')
+        $menus = Menu::with(['group', 'children.group'])
             ->whereNull('parent_id')
             ->orderBy('order')
             ->get()
@@ -30,6 +31,7 @@ class MenuController extends Controller
         return Inertia::render('admin/menus/index', [
             'allMenus' => $menus,
             'parents' => $parents,
+            'menuGroups' => MenuGroup::orderBy('name')->pluck('name'),
         ]);
     }
 
@@ -37,6 +39,8 @@ class MenuController extends Controller
     {
         $data = $request->validated();
         $data['order'] ??= Menu::where('parent_id', $data['parent_id'] ?? null)->max('order') + 1;
+        $data['group_id'] = $this->resolveGroupId($data['group'] ?? null);
+        unset($data['group']);
 
         $menu = Menu::create($data);
 
@@ -52,6 +56,9 @@ class MenuController extends Controller
     public function update(UpdateMenuRequest $request, Menu $menu): RedirectResponse
     {
         $data = $request->validated();
+        $data['group_id'] = $this->resolveGroupId($data['group'] ?? null);
+        unset($data['group']);
+
         $menu->update($data);
 
         $this->syncPermissionFromMenu($data['permission'] ?? null);
@@ -61,6 +68,15 @@ class MenuController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => "Menu \"{$menu->name}\" berhasil diperbarui."]);
 
         return back();
+    }
+
+    private function resolveGroupId(?string $groupName): ?int
+    {
+        if (! filled($groupName)) {
+            return null;
+        }
+
+        return MenuGroup::firstOrCreate(['name' => trim($groupName)])->id;
     }
 
     private function syncPermissionFromMenu(?string $permission): void
@@ -127,6 +143,7 @@ class MenuController extends Controller
         $data = [
             'id' => $menu->id,
             'name' => $menu->name,
+            'group' => $menu->group?->name,
             'icon' => $menu->icon,
             'route' => $menu->route,
             'permission' => $menu->permission,

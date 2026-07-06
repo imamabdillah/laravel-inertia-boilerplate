@@ -38,7 +38,7 @@ const ALL_ICONS = Object.keys(LucideIcons)
     .sort();
 
 type MenuChild = {
-    id: number; name: string; icon: string | null; route: string | null;
+    id: number; name: string; group: string | null; icon: string | null; route: string | null;
     permission: string | null; parent_id: number | null;
     order: number; is_active: boolean;
 };
@@ -49,15 +49,16 @@ type ParentOption = { id: number; name: string };
 type Props = {
     allMenus: MenuItem[];
     parents: ParentOption[];
+    menuGroups: string[];
 };
 
 type FormData = {
-    name: string; icon: string; route: string; permission: string;
+    name: string; group: string; icon: string; route: string; permission: string;
     parent_id: string; order: string; is_active: boolean;
 };
 
 const emptyForm: FormData = {
-    name: '', icon: '', route: '', permission: '',
+    name: '', group: '', icon: '', route: '', permission: '',
     parent_id: '', order: '0', is_active: true,
 };
 
@@ -171,15 +172,58 @@ function IconPicker({ value, onChange }: { value: string; onChange: (v: string) 
     );
 }
 
+// Text input + suggestion dropdown dari group yang sudah ada — tetap bisa ketik bebas
+// buat bikin group baru. Bukan Select biasa karena harus bisa nerima value baru.
+function GroupPicker({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
+    const [open, setOpen] = useState(false);
+    const suggestions = options.filter((g) => g.toLowerCase().includes(value.toLowerCase()));
+
+    return (
+        <div className="relative">
+            <Input
+                id="m-group"
+                value={value}
+                onChange={(e) => {
+                    onChange(e.target.value);
+                    setOpen(true);
+                }}
+                onFocus={() => setOpen(true)}
+                onBlur={() => setOpen(false)}
+                placeholder="Navigation"
+                autoComplete="off"
+            />
+            {open && suggestions.length > 0 && (
+                <div className="border-input bg-popover absolute z-10 mt-1 w-full rounded-md border p-1 shadow-md">
+                    {suggestions.map((g) => (
+                        <button
+                            key={g}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                                onChange(g);
+                                setOpen(false);
+                            }}
+                            className="hover:bg-accent block w-full rounded px-2 py-1.5 text-left text-sm"
+                        >
+                            {g}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 // Di luar MenusIndex agar tidak remount saat state parent berubah
 type MenuFormProps = {
     data: FormData;
     errors: Partial<Record<keyof FormData, string>>;
     parents: ParentOption[];
+    menuGroups: string[];
     setData: (key: keyof FormData, value: string | boolean) => void;
 };
 
-function MenuForm({ data, errors, parents, setData }: MenuFormProps) {
+function MenuForm({ data, errors, parents, menuGroups, setData }: MenuFormProps) {
     return (
         <div className="flex flex-col gap-4 py-2">
             {/* Nama */}
@@ -194,6 +238,16 @@ function MenuForm({ data, errors, parents, setData }: MenuFormProps) {
                 />
                 {errors.name && <p className="text-destructive text-xs">{errors.name}</p>}
             </div>
+
+            {/* Group — cuma relevan buat menu top level, jadi sidebar group label */}
+            {!data.parent_id && (
+                <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="m-group">Group Label</Label>
+                    <GroupPicker value={data.group} onChange={(v) => setData('group', v)} options={menuGroups} />
+                    <p className="text-muted-foreground text-xs">Menu dengan Group Label sama dikelompokkan jadi satu section di sidebar. Kosongkan untuk default "Navigation".</p>
+                    {errors.group && <p className="text-destructive text-xs">{errors.group}</p>}
+                </div>
+            )}
 
             {/* Icon */}
             <div className="flex flex-col gap-1.5">
@@ -271,7 +325,7 @@ function MenuForm({ data, errors, parents, setData }: MenuFormProps) {
     );
 }
 
-export default function MenusIndex({ allMenus, parents }: Props) {
+export default function MenusIndex({ allMenus, parents, menuGroups }: Props) {
     const [createOpen, setCreateOpen]     = useState(false);
     const [editTarget, setEditTarget]     = useState<MenuItem | MenuChild | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<MenuItem | MenuChild | null>(null);
@@ -287,6 +341,7 @@ export default function MenusIndex({ allMenus, parents }: Props) {
     const openEdit = (item: MenuItem | MenuChild) => {
         form.setData({
             name:       item.name,
+            group:      item.group ?? '',
             icon:       item.icon ?? '',
             route:      item.route ?? '',
             permission: item.permission ?? '',
@@ -350,6 +405,7 @@ export default function MenusIndex({ allMenus, parents }: Props) {
         data:    form.data,
         errors:  form.errors,
         parents,
+        menuGroups,
         setData: (key, value) => form.setData(key, value as never),
     };
 
@@ -372,6 +428,7 @@ export default function MenusIndex({ allMenus, parents }: Props) {
                             <TableRow>
                                 <TableHead className="w-20">Order</TableHead>
                                 <TableHead>Nama</TableHead>
+                                <TableHead>Group</TableHead>
                                 <TableHead className="w-12">Icon</TableHead>
                                 <TableHead>Route</TableHead>
                                 <TableHead>Permission</TableHead>
@@ -382,7 +439,7 @@ export default function MenusIndex({ allMenus, parents }: Props) {
                         <TableBody>
                             {allMenus.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-muted-foreground py-12 text-center">
+                                    <TableCell colSpan={8} className="text-muted-foreground py-12 text-center">
                                         Belum ada menu.
                                     </TableCell>
                                 </TableRow>
@@ -401,6 +458,7 @@ export default function MenusIndex({ allMenus, parents }: Props) {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="font-medium">{menu.name}</TableCell>
+                                            <TableCell className="text-muted-foreground text-sm">{menu.group ?? 'Navigation'}</TableCell>
                                             <TableCell>
                                                 {menu.icon
                                                     ? <span title={menu.icon}><LucideIcon name={menu.icon} className="h-4 w-4" /></span>
@@ -436,6 +494,7 @@ export default function MenusIndex({ allMenus, parents }: Props) {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="pl-8 text-sm">↳ {child.name}</TableCell>
+                                                <TableCell className="text-muted-foreground text-sm">—</TableCell>
                                                 <TableCell>
                                                     {child.icon
                                                         ? <span title={child.icon}><LucideIcon name={child.icon} className="h-4 w-4" /></span>

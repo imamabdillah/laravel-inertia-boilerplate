@@ -16,6 +16,7 @@ export type NavItem = {
 export type MenuItem = {
     id: number;
     name: string;
+    group: string | null;
     icon: string | null;
     route: string | null;
     permission: string | null;
