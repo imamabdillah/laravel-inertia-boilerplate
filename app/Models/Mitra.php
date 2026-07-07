@@ -15,6 +15,7 @@ class Mitra extends Model
         'user_id',
         'nama_lembaga',
         'jenis_lembaga',
+        'jenis_lembaga_lainnya',
         'bidang_kerja',
         'jenjang',
         'wilayah',
@@ -108,6 +109,23 @@ class Mitra extends Model
     public function getCanSubmitAttribute(): bool
     {
         return $this->is_profile_complete && $this->is_documents_complete;
+    }
+
+    public function getIsAllDokumenVerifiedAttribute(): bool
+    {
+        $diterima = $this->dokumens()
+            ->whereIn('jenis_dokumen', self::DOKUMEN_WAJIB)
+            ->where('status', 'diterima')
+            ->pluck('jenis_dokumen')
+            ->all();
+
+        foreach (self::DOKUMEN_WAJIB as $jenis) {
+            if (! in_array($jenis, $diterima)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function scopeVerified($query)

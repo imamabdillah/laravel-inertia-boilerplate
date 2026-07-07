@@ -62,6 +62,10 @@ class MitraController extends Controller
             return back()->with('error', 'Status mitra tidak valid untuk diverifikasi.');
         }
 
+        if (! $mitra->is_all_dokumen_verified) {
+            return back()->with('error', 'Semua dokumen wajib harus diverifikasi (diterima) terlebih dahulu sebelum mitra dapat diverifikasi.');
+        }
+
         $mitra->update([
             'status'      => 'diverifikasi',
             'verified_at' => now(),

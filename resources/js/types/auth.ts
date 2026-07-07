@@ -89,6 +89,7 @@ export type Mitra = {
     user_id: string;
     nama_lembaga: string;
     jenis_lembaga: string;
+    jenis_lembaga_lainnya: string | null;
     bidang_kerja: string;
     jenjang: string[];
     wilayah: string[];
@@ -114,6 +115,7 @@ export type Mitra = {
     logo: string | null;
     is_profile_complete: boolean;
     is_documents_complete: boolean;
+    is_all_dokumen_verified: boolean;
     can_submit: boolean;
     dokumens?: DokumenMitra[];
     created_at: string;

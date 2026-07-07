@@ -1,174 +1,121 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import {
-    Activity,
-    KeyRound,
-    LayoutDashboard,
-    Menu,
-    Moon,
-    ShieldCheck,
-    Sun,
-    Users,
-} from 'lucide-react';
+import { Activity, Building2, FileCheck, FileText, LayoutDashboard, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAppearance } from '@/hooks/use-appearance';
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login } from '@/routes';
 
 const FEATURES = [
     {
-        icon: Users,
-        title: 'User Management',
-        desc: 'CRUD user lengkap dengan toggle status aktif, reset password, dan assignment role.',
+        icon: FileText,
+        title: 'Pengelolaan Dokumen',
+        desc: 'Kelola dokumen kerjasama secara digital — pengajuan, verifikasi, hingga arsip tersimpan terpusat.',
+    },
+    {
+        icon: Building2,
+        title: 'Data Mitra Terpusat',
+        desc: 'Profil dan informasi mitra tersimpan terstruktur, mudah diakses dan selalu mutakhir.',
+    },
+    {
+        icon: FileCheck,
+        title: 'Verifikasi & Persetujuan',
+        desc: 'Alur review dan persetujuan dokumen yang jelas dengan status yang dapat dipantau setiap tahap.',
     },
     {
         icon: ShieldCheck,
-        title: 'Role & Permission',
-        desc: 'Berbasis Spatie Laravel Permission. Matrix checklist permission per role yang intuitif.',
-    },
-    {
-        icon: Menu,
-        title: 'Dynamic Menus',
-        desc: 'Menu sidebar diambil dari database. Drag-reorder, parent-child, icon, dan permission gate.',
-    },
-    {
-        icon: Activity,
-        title: 'Activity Log',
-        desc: 'Semua aksi create/update/delete terekam otomatis via Spatie Activitylog.',
-    },
-    {
-        icon: KeyRound,
-        title: 'Settings',
-        desc: 'Key-value settings yang tersimpan di database, dikelompokkan per group.',
+        title: 'Keamanan & Hak Akses',
+        desc: 'Kontrol akses berbasis peran — admin dan mitra memiliki kewenangan yang terpisah dan aman.',
     },
     {
         icon: LayoutDashboard,
-        title: 'Admin Layout',
-        desc: 'Sidebar collapsible, breadcrumb, dark/light mode, dan responsive siap pakai.',
+        title: 'Dashboard Monitoring',
+        desc: 'Pantau status dan progres kerjasama secara real-time melalui dashboard yang informatif.',
     },
-];
-
-const STACK = [
-    { name: 'Laravel 13', color: 'text-red-500 bg-red-500/10 border-red-500/20' },
-    { name: 'PHP 8.3',    color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20' },
-    { name: 'Inertia v3', color: 'text-purple-500 bg-purple-500/10 border-purple-500/20' },
-    { name: 'React 19',   color: 'text-sky-500 bg-sky-500/10 border-sky-500/20' },
-    { name: 'TypeScript', color: 'text-blue-500 bg-blue-500/10 border-blue-500/20' },
-    { name: 'Tailwind v4', color: 'text-teal-500 bg-teal-500/10 border-teal-500/20' },
-    { name: 'shadcn/ui',  color: 'text-zinc-500 bg-zinc-500/10 border-zinc-500/20' },
-    { name: 'PostgreSQL', color: 'text-blue-700 bg-blue-700/10 border-blue-700/20' },
+    {
+        icon: Activity,
+        title: 'Jejak Audit',
+        desc: 'Seluruh aktivitas terekam otomatis untuk menjamin transparansi dan akuntabilitas penuh.',
+    },
 ];
 
 export default function Welcome() {
     const { auth } = usePage().props;
-    const { resolvedAppearance, updateAppearance } = useAppearance();
 
     return (
         <>
-            <Head title="Welcome" />
+            <Head title="Sistem Kerjasama GTK" />
 
             <div className="min-h-screen bg-background text-foreground antialiased">
                 {/* Navbar */}
-                <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-sm">
+                <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur-sm">
                     <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-                        <div className="flex items-center gap-2">
-                            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground">
-                                <div className="h-3.5 w-3.5 rounded-sm bg-background" />
+                        <div className="flex items-center gap-2.5">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-900">
+                                <div className="h-3.5 w-3.5 rounded-sm bg-white" />
                             </div>
-                            <span className="text-sm font-semibold">Admin Boilerplate</span>
+                            <span className="text-sm font-semibold tracking-tight">Sistem Kerjasama</span>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => updateAppearance(resolvedAppearance === 'dark' ? 'light' : 'dark')}
-                                suppressHydrationWarning
-                            >
-                                <Sun className="h-4 w-4 hidden dark:block" suppressHydrationWarning />
-                                <Moon className="h-4 w-4 dark:hidden" suppressHydrationWarning />
+                        {auth.user ? (
+                            <Button asChild size="sm">
+                                <Link href={dashboard()}>Dashboard</Link>
                             </Button>
-
-                            {auth.user ? (
-                                <Button asChild size="sm">
-                                    <Link href={dashboard()}>Dashboard</Link>
-                                </Button>
-                            ) : (
-                                <>
-                                    <Button variant="ghost" size="sm" asChild>
-                                        <Link href={login()}>Log in</Link>
-                                    </Button>
-                                    <Button size="sm" asChild>
-                                        <Link href={register()}>Get started</Link>
-                                    </Button>
-                                </>
-                            )}
-                        </div>
+                        ) : (
+                            <Button asChild size="sm">
+                                <Link href={login()}>Masuk</Link>
+                            </Button>
+                        )}
                     </div>
                 </header>
 
                 {/* Hero */}
-                <section className="mx-auto max-w-6xl px-6 pt-24 pb-16 text-center">
-                    <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-muted/60 px-3 py-1 text-xs text-muted-foreground">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                        Laravel 13 + Inertia.js v3 + React 19
-                    </div>
-
-                    <h1 className="mx-auto max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                        Admin panel boilerplate
-                        <span className="text-muted-foreground"> siap pakai</span>
-                    </h1>
-
-                    <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">
-                        Fondasi solid untuk membangun aplikasi admin Laravel.
-                        Auth, roles, permissions, menus, activity log — semua sudah ada.
-                        Fokus ke logika bisnis, bukan setup.
-                    </p>
-
-                    <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                        {auth.user ? (
-                            <Button size="lg" asChild>
-                                <Link href={dashboard()}>Buka Dashboard</Link>
-                            </Button>
-                        ) : (
-                            <>
+                <section className="bg-slate-950 py-24 text-white">
+                    <div className="mx-auto max-w-4xl px-6 text-center">
+                        <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-400">
+                            Direktorat Jenderal Guru dan Tenaga Kependidikan
+                        </p>
+                        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+                            Sistem Pengelolaan
+                            <br />
+                            <span className="text-blue-400">Kerjasama GTK</span>
+                        </h1>
+                        <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-slate-400">
+                            Platform digital untuk mengelola kerjasama antara Ditjen GTK dan mitra secara
+                            efisien — mulai dari pengajuan, verifikasi, hingga pemantauan perjanjian.
+                        </p>
+                        <div className="mt-8">
+                            {auth.user ? (
                                 <Button size="lg" asChild>
-                                    <Link href={register()}>Mulai sekarang</Link>
+                                    <Link href={dashboard()}>Buka Dashboard</Link>
                                 </Button>
-                                <Button size="lg" variant="outline" asChild>
-                                    <Link href={login()}>Log in</Link>
+                            ) : (
+                                <Button
+                                    size="lg"
+                                    className="bg-blue-600 text-white hover:bg-blue-700"
+                                    asChild
+                                >
+                                    <Link href={login()}>Masuk ke Sistem</Link>
                                 </Button>
-                            </>
-                        )}
-                    </div>
-
-                    {/* Stack badges */}
-                    <div className="mt-12 flex flex-wrap items-center justify-center gap-2">
-                        {STACK.map((s) => (
-                            <span
-                                key={s.name}
-                                className={`rounded-full border px-3 py-1 text-xs font-medium ${s.color}`}
-                            >
-                                {s.name}
-                            </span>
-                        ))}
+                            )}
+                        </div>
                     </div>
                 </section>
 
                 {/* Features */}
-                <section className="mx-auto max-w-6xl px-6 pb-24">
-                    <div className="mb-10 text-center">
-                        <h2 className="text-2xl font-semibold tracking-tight">Fitur yang sudah ada</h2>
-                        <p className="mt-2 text-sm text-muted-foreground">Semua modul sudah terintegrasi dan siap dikustomisasi</p>
+                <section className="mx-auto max-w-6xl px-6 py-20">
+                    <div className="mb-12 text-center">
+                        <h2 className="text-2xl font-semibold tracking-tight">Fitur Utama Sistem</h2>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            Seluruh kebutuhan pengelolaan kerjasama dalam satu platform terintegrasi
+                        </p>
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {FEATURES.map(({ icon: Icon, title, desc }) => (
                             <div
                                 key={title}
-                                className="group rounded-xl border border-border bg-card p-6 transition-colors hover:border-foreground/20 hover:bg-accent/30"
+                                className="rounded-xl border border-border bg-card p-6 transition-colors hover:border-blue-200 hover:bg-blue-50/30 dark:hover:border-blue-900 dark:hover:bg-blue-950/20"
                             >
                                 <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-background">
-                                    <Icon className="h-5 w-5 text-foreground" />
+                                    <Icon className="h-5 w-5 text-blue-700 dark:text-blue-400" />
                                 </div>
                                 <h3 className="mb-1.5 font-semibold">{title}</h3>
                                 <p className="text-sm leading-relaxed text-muted-foreground">{desc}</p>
@@ -181,15 +128,11 @@ export default function Welcome() {
                 <footer className="border-t border-border bg-muted/30">
                     <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
                         <span className="text-xs text-muted-foreground">
-                            Admin Boilerplate — reusable, tanpa logika bisnis spesifik.
+                            © {new Date().getFullYear()} Sistem Kerjasama GTK
                         </span>
-                        <div className="flex gap-4 text-xs text-muted-foreground">
-                            <span>Laravel 13</span>
-                            <span>·</span>
-                            <span>PHP 8.3</span>
-                            <span>·</span>
-                            <span>PostgreSQL 16</span>
-                        </div>
+                        <span className="text-xs text-muted-foreground">
+                            Direktorat Jenderal Guru dan Tenaga Kependidikan
+                        </span>
                     </div>
                 </footer>
             </div>

@@ -142,7 +142,12 @@ export default function AdminMitrasIndex({ mitras, filters }: Props) {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-sm">
-                                                {JENIS_LABELS[mitra.jenis_lembaga] ?? mitra.jenis_lembaga}
+                                                <div>
+                                                    <p>{JENIS_LABELS[mitra.jenis_lembaga] ?? mitra.jenis_lembaga}</p>
+                                                    {mitra.jenis_lembaga === 'lainnya' && mitra.jenis_lembaga_lainnya && (
+                                                        <p className="text-xs text-muted-foreground">{mitra.jenis_lembaga_lainnya}</p>
+                                                    )}
+                                                </div>
                                             </TableCell>
                                             <TableCell>
                                                 <div>

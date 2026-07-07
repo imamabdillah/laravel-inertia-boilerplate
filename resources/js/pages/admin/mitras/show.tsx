@@ -130,7 +130,7 @@ export default function AdminMitraShow({ mitra, logs }: Props) {
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 max-w-5xl">
+            <div className="flex flex-1 flex-col gap-2 p-4 md:p-6 max-w-7xl mx-auto w-full">
 
                 {/* Header */}
                 <div className="flex items-start justify-between flex-wrap gap-4">
@@ -149,7 +149,8 @@ export default function AdminMitraShow({ mitra, logs }: Props) {
                             <Button
                                 size="sm"
                                 onClick={() => setVerifyOpen(true)}
-                                disabled={mitra.status === 'draft'}
+                                disabled={mitra.status === 'draft' || !mitra.is_all_dokumen_verified}
+                                title={!mitra.is_all_dokumen_verified ? 'Semua dokumen wajib harus diverifikasi (diterima) dulu' : undefined}
                             >
                                 <CheckCircle2 className="mr-1.5 h-4 w-4" />
                                 Verifikasi
@@ -177,6 +178,29 @@ export default function AdminMitraShow({ mitra, logs }: Props) {
                     </Alert>
                 )}
 
+                {canVerifyOrReject && mitra.status !== 'diverifikasi' && mitra.status !== 'draft' && !mitra.is_all_dokumen_verified && (
+                    <Alert>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Dokumen belum lengkap diverifikasi</AlertTitle>
+                        <AlertDescription>Semua dokumen wajib berstatus "Diterima" sebelum mitra ini dapat diverifikasi.</AlertDescription>
+                    </Alert>
+                )}
+
+                {(mitra.jenjang?.length || mitra.wilayah?.length || mitra.upt?.length) ? (
+                            <div className="flex flex-wrap gap-1.5 mb-4 pb-4 border-b">  
+                                {mitra.jenjang?.map((v) => (
+                                    <Badge key={`jenjang-${v}`} variant="outline">{JENJANG_LABELS[v] ?? v}</Badge>
+                                ))}
+                                {mitra.wilayah?.map((v) => (
+                                    <Badge className="bg-blue-100 text-blue-800" key={`wilayah-${v}`} variant="secondary">{WILAYAH_LABELS[v] ?? v}</Badge>
+                                ))}
+                                {mitra.upt?.map((v) => (
+                                    <Badge className="bg-blue-100 text-blue-800" key={`upt-${v}`} variant="secondary">{UPT_LABELS[v] ?? v}</Badge>
+                                ))}
+                            </div>
+                        ) : null}
+                                   
+
                 {mitra.catatan_admin && (
                     <Alert variant="destructive">
                         <AlertCircle className="h-4 w-4" />
@@ -185,7 +209,7 @@ export default function AdminMitraShow({ mitra, logs }: Props) {
                     </Alert>
                 )}
 
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-2">
                     {/* Data Lembaga */}
                     <Card>
                         <CardHeader><CardTitle className="text-base">Data Lembaga</CardTitle></CardHeader>
@@ -237,6 +261,7 @@ export default function AdminMitraShow({ mitra, logs }: Props) {
                 </div>
 
                 {/* Dokumen */}
+                <div className="mt-5">
                 <Card>
                     <CardHeader><CardTitle className="text-base">Dokumen</CardTitle></CardHeader>
                     <CardContent>
@@ -299,8 +324,10 @@ export default function AdminMitraShow({ mitra, logs }: Props) {
                         )}
                     </CardContent>
                 </Card>
+                </div>
 
                 {/* Activity Log */}
+                <div className="mt-5">
                 <Card>
                     <CardHeader><CardTitle className="text-base">Activity Log</CardTitle></CardHeader>
                     <CardContent>
@@ -323,6 +350,7 @@ export default function AdminMitraShow({ mitra, logs }: Props) {
                         )}
                     </CardContent>
                 </Card>
+                </div>
             </div>
 
             {/* Dialog: Verifikasi */}

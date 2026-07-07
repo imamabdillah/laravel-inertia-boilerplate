@@ -282,6 +282,7 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib, tag_options }: P
     const { data, setData, put, processing, errors } = useForm({
         nama_lembaga:  mitra.nama_lembaga ?? '',
         jenis_lembaga: mitra.jenis_lembaga ?? '',
+        jenis_lembaga_lainnya: mitra.jenis_lembaga_lainnya ?? '',
         bidang_kerja:  mitra.bidang_kerja ?? '',
         jenjang:       mitra.jenjang ?? [],
         wilayah:       mitra.wilayah ?? [],
@@ -362,7 +363,7 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib, tag_options }: P
 
     return (
         <MitraLayout breadcrumbs={breadcrumbs}>
-            <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 max-w-4xl mx-auto">
+            <div className="flex flex-2 flex-col gap-6 p-4 md:p-6 max-w-7xl mx-auto w-full">
 
                 {/* Header */}
                 <div className="flex items-center justify-between flex-wrap gap-3">
@@ -392,8 +393,8 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib, tag_options }: P
                             <CardTitle>Data Lembaga</CardTitle>
                             <CardDescription>Informasi dasar tentang lembaga Anda</CardDescription>
                         </CardHeader>
-                        <CardContent className="grid gap-4 md:grid-cols-2">
-                            <div className="md:col-span-2 grid gap-1.5">
+                        <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            <div className="md:col-span-2 lg:col-span-3 grid gap-1.5">
                                 <Label htmlFor="nama_lembaga">Nama Lembaga <span className="text-destructive">*</span></Label>
                                 <Input
                                     id="nama_lembaga"
@@ -423,6 +424,19 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib, tag_options }: P
                                 {errors.jenis_lembaga && <p className="text-xs text-destructive">{errors.jenis_lembaga}</p>}
                             </div>
 
+                            {data.jenis_lembaga === 'lainnya' && (
+                                <div className="grid gap-1.5">
+                                    <Label htmlFor="jenis_lembaga_lainnya">Sebutkan Jenis Lembaga <span className="text-destructive">*</span></Label>
+                                    <Input
+                                        id="jenis_lembaga_lainnya"
+                                        value={data.jenis_lembaga_lainnya}
+                                        onChange={(e) => setData('jenis_lembaga_lainnya', e.target.value)}
+                                        disabled={!canEdit}
+                                    />
+                                    {errors.jenis_lembaga_lainnya && <p className="text-xs text-destructive">{errors.jenis_lembaga_lainnya}</p>}
+                                </div>
+                            )}
+
                             <div className="grid gap-1.5">
                                 <Label htmlFor="bidang_kerja">Bidang Kerja <span className="text-destructive">*</span></Label>
                                 <Input
@@ -434,7 +448,7 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib, tag_options }: P
                                 {errors.bidang_kerja && <p className="text-xs text-destructive">{errors.bidang_kerja}</p>}
                             </div>
 
-                            <div className="md:col-span-2 grid gap-1.5">
+                            <div className="md:col-span-2 lg:col-span-3 grid gap-1.5">
                                 <Label htmlFor="deskripsi">Deskripsi</Label>
                                 <Textarea
                                     id="deskripsi"
@@ -452,8 +466,8 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib, tag_options }: P
                         <CardHeader>
                             <CardTitle>Alamat &amp; Kontak</CardTitle>
                         </CardHeader>
-                        <CardContent className="grid gap-4 md:grid-cols-2">
-                            <div className="md:col-span-2 grid gap-1.5">
+                        <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            <div className="md:col-span-2 lg:col-span-3 grid gap-1.5">
                                 <Label htmlFor="alamat">Alamat</Label>
                                 <Textarea
                                     id="alamat"
@@ -500,7 +514,7 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib, tag_options }: P
                             <CardTitle>Person in Charge (PIC)</CardTitle>
                             <CardDescription>Penanggung jawab yang bisa dihubungi</CardDescription>
                         </CardHeader>
-                        <CardContent className="grid gap-4 md:grid-cols-2">
+                        <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                             <div className="grid gap-1.5">
                                 <Label htmlFor="pic_nama">Nama PIC <span className="text-destructive">*</span></Label>
                                 <Input id="pic_nama" value={data.pic_nama} onChange={(e) => setData('pic_nama', e.target.value)} disabled={!canEdit} />
@@ -564,7 +578,7 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib, tag_options }: P
                         <CardDescription>Dokumen berikut harus diupload sebelum bisa submit</CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-3">
-                        <div className="grid gap-4 rounded-lg border p-4">
+                        <div className="grid gap-4 rounded-lg border p-4 md:grid-cols-2 lg:grid-cols-3">
                             <TagMultiSelect
                                 label="Jenjang"
                                 options={tag_options.jenjang}
@@ -590,7 +604,7 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib, tag_options }: P
                                 disabled={!canEdit}
                             />
                             {canEdit && (
-                                <div className="flex justify-end">
+                                <div className="flex justify-end md:col-span-2 lg:col-span-3">
                                     <Button type="button" size="sm" disabled={processing} onClick={() => put(profil.update().url)}>
                                         {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                         Simpan Tag
