@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Mitra;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Mitra\UpdateMitraRequest;
-use App\Http\Resources\DokumenMitraResource;
 use App\Http\Resources\MitraResource;
 use App\Models\DokumenMitra;
 use App\Models\Mitra;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,15 +21,15 @@ class ProfilController extends Controller
         return Mitra::firstOrCreate(
             ['user_id' => auth()->id()],
             [
-                'nama_lembaga'  => '',
+                'nama_lembaga' => '',
                 'jenis_lembaga' => 'lainnya',
-                'bidang_kerja'  => '',
-                'telepon'       => '',
+                'bidang_kerja' => '',
+                'telepon' => '',
                 'email_lembaga' => '',
-                'pic_nama'      => '',
-                'pic_jabatan'   => '',
-                'pic_telepon'   => '',
-                'pic_email'     => '',
+                'pic_nama' => '',
+                'pic_jabatan' => '',
+                'pic_telepon' => '',
+                'pic_email' => '',
             ]
         );
     }
@@ -40,12 +40,12 @@ class ProfilController extends Controller
         $mitra->load('dokumens');
 
         return Inertia::render('mitra/profil/edit', [
-            'mitra'          => new MitraResource($mitra),
-            'dokumen_wajib'  => Mitra::DOKUMEN_WAJIB,
-            'tag_options'    => [
+            'mitra' => new MitraResource($mitra),
+            'dokumen_wajib' => Mitra::DOKUMEN_WAJIB,
+            'tag_options' => [
                 'jenjang' => Mitra::JENJANG_OPTIONS,
                 'wilayah' => Mitra::WILAYAH_OPTIONS,
-                'upt'     => Mitra::UPT_OPTIONS,
+                'upt' => Mitra::UPT_OPTIONS,
             ],
         ]);
     }
@@ -76,19 +76,19 @@ class ProfilController extends Controller
         try {
             $request->validate([
                 'jenis_dokumen' => ['required', 'in:surat_pengajuan,proposal_kerja_sama,dokumen_legalitas,profil_perusahaan'],
-                'file'          => ['required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png'],
+                'file' => ['required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png'],
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             \Log::info('DEBUG upload validation failed', $e->errors());
             throw $e;
         }
 
         $mitra = $this->getMitraForAuth();
 
-        $file    = $request->file('file');
-        $jenis   = $request->jenis_dokumen;
-        $wajib   = in_array($jenis, Mitra::DOKUMEN_WAJIB);
-        $path    = $file->store("dokumen-mitra/{$mitra->id}", 'public');
+        $file = $request->file('file');
+        $jenis = $request->jenis_dokumen;
+        $wajib = in_array($jenis, Mitra::DOKUMEN_WAJIB);
+        $path = $file->store("dokumen-mitra/{$mitra->id}", 'public');
 
         $existing = $mitra->dokumens()->where('jenis_dokumen', $jenis)->first();
 
@@ -99,19 +99,19 @@ class ProfilController extends Controller
                 'file_path' => $path,
                 'file_type' => $file->getMimeType(),
                 'file_size' => $file->getSize(),
-                'status'    => 'menunggu',
-                'catatan'   => null,
+                'status' => 'menunggu',
+                'catatan' => null,
             ]);
             $dokumen = $existing;
         } else {
             $dokumen = $mitra->dokumens()->create([
                 'jenis_dokumen' => $jenis,
-                'wajib'         => $wajib,
-                'nama_file'     => $file->getClientOriginalName(),
-                'file_path'     => $path,
-                'file_type'     => $file->getMimeType(),
-                'file_size'     => $file->getSize(),
-                'status'        => 'menunggu',
+                'wajib' => $wajib,
+                'nama_file' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'file_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'status' => 'menunggu',
             ]);
         }
 
@@ -154,7 +154,7 @@ class ProfilController extends Controller
 
             if (! $mitra->is_documents_complete) {
                 $missingDocs = [];
-                $uploaded    = $mitra->dokumens
+                $uploaded = $mitra->dokumens
                     ->whereNotIn('status', ['ditolak'])
                     ->pluck('jenis_dokumen')
                     ->all();
@@ -166,11 +166,11 @@ class ProfilController extends Controller
                 }
 
                 if ($missingDocs) {
-                    $missing[] = 'Dokumen wajib belum lengkap: ' . implode(', ', $missingDocs);
+                    $missing[] = 'Dokumen wajib belum lengkap: '.implode(', ', $missingDocs);
                 }
             }
 
-            return back()->with('error', 'Lengkapi data dan dokumen wajib dulu: ' . implode('; ', $missing));
+            return back()->with('error', 'Lengkapi data dan dokumen wajib dulu: '.implode('; ', $missing));
         }
 
         if ($mitra->status !== 'draft') {

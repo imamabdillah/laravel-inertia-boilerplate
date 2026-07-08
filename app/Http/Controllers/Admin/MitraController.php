@@ -19,8 +19,8 @@ class MitraController extends Controller
         $mitras = Mitra::with('user')
             ->when($request->search, fn ($q, $s) => $q->where(function ($q) use ($s) {
                 $q->where('nama_lembaga', 'ilike', "%{$s}%")
-                  ->orWhere('pic_nama', 'ilike', "%{$s}%")
-                  ->orWhere('email_lembaga', 'ilike', "%{$s}%");
+                    ->orWhere('pic_nama', 'ilike', "%{$s}%")
+                    ->orWhere('email_lembaga', 'ilike', "%{$s}%");
             }))
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->orderBy('created_at', 'desc')
@@ -28,7 +28,7 @@ class MitraController extends Controller
             ->withQueryString();
 
         return Inertia::render('admin/mitras/index', [
-            'mitras'  => MitraResource::collection($mitras),
+            'mitras' => MitraResource::collection($mitras),
             'filters' => $request->only(['search', 'status']),
         ]);
     }
@@ -44,15 +44,15 @@ class MitraController extends Controller
             ->take(20)
             ->get()
             ->map(fn ($log) => [
-                'id'          => $log->id,
+                'id' => $log->id,
                 'description' => $log->description,
                 'causer_name' => $log->causer?->name ?? 'System',
-                'created_at'  => $log->created_at->toDateTimeString(),
+                'created_at' => $log->created_at->toDateTimeString(),
             ]);
 
         return Inertia::render('admin/mitras/show', [
             'mitra' => new MitraResource($mitra),
-            'logs'  => $logs,
+            'logs' => $logs,
         ]);
     }
 
@@ -67,7 +67,7 @@ class MitraController extends Controller
         }
 
         $mitra->update([
-            'status'      => 'diverifikasi',
+            'status' => 'diverifikasi',
             'verified_at' => now(),
             'verified_by' => auth()->id(),
             'catatan_admin' => null,
@@ -89,9 +89,9 @@ class MitraController extends Controller
         }
 
         $mitra->update([
-            'status'        => 'ditolak',
+            'status' => 'ditolak',
             'catatan_admin' => $request->catatan_admin,
-            'verified_by'   => auth()->id(),
+            'verified_by' => auth()->id(),
         ]);
 
         activity()->causedBy(auth()->user())->on($mitra)->log('rejected');
@@ -102,7 +102,7 @@ class MitraController extends Controller
     public function reviewDokumen(Request $request, Mitra $mitra, DokumenMitra $dokumen): RedirectResponse
     {
         $request->validate([
-            'status'  => ['required', 'in:diterima,ditolak'],
+            'status' => ['required', 'in:diterima,ditolak'],
             'catatan' => ['nullable', 'string'],
         ]);
 
@@ -111,7 +111,7 @@ class MitraController extends Controller
         }
 
         $dokumen->update([
-            'status'  => $request->status,
+            'status' => $request->status,
             'catatan' => $request->catatan,
         ]);
 

@@ -21,6 +21,7 @@ Route::get('dashboard', function () {
     if ($user && $user->hasRole('mitra')) {
         return redirect()->route('mitra.profil.show');
     }
+
     return redirect()->route('profile.edit');
 })->middleware(['auth', 'verified'])->name('dashboard');
 

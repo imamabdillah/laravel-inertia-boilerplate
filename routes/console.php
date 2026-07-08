@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\DokumenMitra;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 
@@ -8,7 +9,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Artisan::command('debug:dok', function () {
-    foreach (\App\Models\DokumenMitra::withTrashed()->orderByDesc('id')->get() as $d) {
+    foreach (DokumenMitra::withTrashed()->orderByDesc('id')->get() as $d) {
         $this->line(json_encode($d));
     }
 });

@@ -13,7 +13,7 @@ class SettingSeeder extends Seeder
             ['key' => 'app_name', 'value' => config('app.name', 'Laravel'), 'group' => 'general'],
             ['key' => 'app_logo', 'value' => null, 'group' => 'general'],
             ['key' => 'app_email', 'value' => 'admin@example.com', 'group' => 'general'],
-            ['key' => 'app_footer', 'value' => '© ' . date('Y') . ' ' . config('app.name', 'Laravel') . '. All rights reserved.', 'group' => 'general'],
+            ['key' => 'app_footer', 'value' => '© '.date('Y').' '.config('app.name', 'Laravel').'. All rights reserved.', 'group' => 'general'],
         ];
 
         foreach ($settings as $setting) {

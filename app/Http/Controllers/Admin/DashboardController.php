@@ -17,22 +17,22 @@ class DashboardController extends Controller
     {
         return Inertia::render('admin/dashboard', [
             'stats' => [
-                'users'       => User::count(),
-                'roles'       => Role::count(),
+                'users' => User::count(),
+                'roles' => Role::count(),
                 'permissions' => Permission::count(),
-                'menus'       => Menu::count(),
-                'activities'  => Activity::count(),
+                'menus' => Menu::count(),
+                'activities' => Activity::count(),
             ],
             'recentActivities' => Activity::with('causer')
                 ->latest()
                 ->take(8)
                 ->get()
                 ->map(fn (Activity $a) => [
-                    'id'           => $a->id,
-                    'description'  => $a->description,
+                    'id' => $a->id,
+                    'description' => $a->description,
                     'subject_type' => $a->subject_type ? class_basename($a->subject_type) : null,
-                    'causer_name'  => $a->causer?->name ?? 'System',
-                    'created_at'   => $a->created_at->diffForHumans(),
+                    'causer_name' => $a->causer?->name ?? 'System',
+                    'created_at' => $a->created_at->diffForHumans(),
                 ]),
         ]);
     }

@@ -24,36 +24,36 @@ class ActivityLogController extends Controller
             ->withQueryString();
 
         $items = collect($paginator->items())->map(fn (Activity $log) => [
-            'id'           => $log->id,
-            'description'  => $log->description,
-            'event'        => $log->description,
+            'id' => $log->id,
+            'description' => $log->description,
+            'event' => $log->description,
             'subject_type' => $log->subject_type ? class_basename($log->subject_type) : null,
-            'subject_id'   => $log->subject_id,
-            'causer_name'  => $log->causer?->name ?? 'System',
+            'subject_id' => $log->subject_id,
+            'causer_name' => $log->causer?->name ?? 'System',
             'causer_email' => $log->causer?->email,
-            'created_at'   => $log->created_at?->toDateTimeString(),
+            'created_at' => $log->created_at?->toDateTimeString(),
         ]);
 
         return Inertia::render('admin/activity-log/index', [
             'logs' => [
-                'data'  => $items,
+                'data' => $items,
                 'links' => [
                     'first' => $paginator->url(1),
-                    'last'  => $paginator->url($paginator->lastPage()),
-                    'prev'  => $paginator->previousPageUrl(),
-                    'next'  => $paginator->nextPageUrl(),
+                    'last' => $paginator->url($paginator->lastPage()),
+                    'prev' => $paginator->previousPageUrl(),
+                    'next' => $paginator->nextPageUrl(),
                 ],
-                'meta'  => [
+                'meta' => [
                     'current_page' => $paginator->currentPage(),
-                    'from'         => $paginator->firstItem(),
-                    'last_page'    => $paginator->lastPage(),
-                    'per_page'     => $paginator->perPage(),
-                    'to'           => $paginator->lastItem(),
-                    'total'        => $paginator->total(),
-                    'links'        => $paginator->linkCollection()->toArray(),
+                    'from' => $paginator->firstItem(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'to' => $paginator->lastItem(),
+                    'total' => $paginator->total(),
+                    'links' => $paginator->linkCollection()->toArray(),
                 ],
             ],
-            'users'   => User::orderBy('name')->get()->map(fn (User $u) => ['id' => $u->id, 'name' => $u->name]),
+            'users' => User::orderBy('name')->get()->map(fn (User $u) => ['id' => $u->id, 'name' => $u->name]),
             'filters' => $request->only(['search', 'event', 'user_id', 'date_from', 'date_to']),
         ]);
     }

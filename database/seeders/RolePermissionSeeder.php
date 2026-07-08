@@ -8,6 +8,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -15,7 +16,7 @@ class RolePermissionSeeder extends Seeder
 
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Derive resources from menus — no hardcoded permissions needed.
         // Each menu with a permission field generates 4 standard permissions.
@@ -41,5 +42,8 @@ class RolePermissionSeeder extends Seeder
         $admin->syncPermissions(
             Permission::where('name', 'like', '%.view')->get()
         );
+
+        // Default role untuk user yang register sendiri (lihat CreateNewUser).
+        Role::firstOrCreate(['name' => 'mitra', 'guard_name' => 'web']);
     }
 }
