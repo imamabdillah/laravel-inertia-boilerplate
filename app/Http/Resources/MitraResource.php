@@ -5,8 +5,14 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin \App\Models\Mitra
+ */
 class MitraResource extends JsonResource
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -52,6 +58,8 @@ class MitraResource extends JsonResource
                 'name' => $this->verifiedBy->name,
             ] : null),
             'dokumens' => DokumenMitraResource::collection($this->whenLoaded('dokumens')),
+            'suggested_pelaksana' => $this->suggested_pelaksana,
+            'latest_audiensi' => new AudiensiResource($this->whenLoaded('latestAudiensi')),
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
         ];

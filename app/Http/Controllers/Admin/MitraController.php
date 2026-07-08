@@ -3,15 +3,19 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AssignAudiensiRequest;
 use App\Http\Resources\MitraResource;
+use App\Models\Audiensi;
 use App\Models\DokumenMitra;
 use App\Models\Mitra;
 use App\Models\RefUpt;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\Permission\Models\Role;
 
 class MitraController extends Controller
 {
@@ -36,7 +40,7 @@ class MitraController extends Controller
 
     public function show(Mitra $mitra): Response
     {
-        $mitra->load(['user', 'dokumens', 'verifiedBy']);
+        $mitra->load(['user', 'dokumens', 'verifiedBy', 'latestAudiensi.assignedBy', 'latestAudiensi.completedBy']);
 
         $logs = Activity::where('subject_type', Mitra::class)
             ->where('subject_id', $mitra->id)
@@ -55,7 +59,49 @@ class MitraController extends Controller
             'mitra' => new MitraResource($mitra),
             'logs' => $logs,
             'upt_labels' => RefUpt::labels(),
+            'pelaksana_options' => Audiensi::pelaksanaOptions(),
+            'pelaksana_labels' => Audiensi::pelaksanaLabels(),
         ]);
+    }
+
+    public function assignAudiensi(AssignAudiensiRequest $request, Mitra $mitra): RedirectResponse
+    {
+        if ($mitra->status !== 'diverifikasi') {
+            return back()->with('error', 'Audiensi hanya dapat ditugaskan untuk mitra berstatus diverifikasi.');
+        }
+
+        $active = $mitra->audiensis()->where('status', '!=', 'selesai')->latest()->first();
+
+        if ($active && $active->status === 'dijadwalkan') {
+            return back()->with('error', 'Audiensi sudah dijadwalkan oleh pelaksana, tidak dapat ditugaskan ulang.');
+        }
+
+        DB::transaction(function () use ($request, $mitra, $active) {
+            // Pastikan role pelaksana ada supaya user unit bisa langsung di-assign
+            // lewat Role Management (role UPT dibuat dinamis: upt_<code>).
+            if ($request->pelaksana !== Audiensi::PELAKSANA_SESDITJEN) {
+                Role::firstOrCreate(['name' => $request->pelaksana, 'guard_name' => 'web']);
+            }
+
+            if ($active) {
+                $active->update([
+                    'pelaksana' => $request->pelaksana,
+                    'assigned_by' => auth()->id(),
+                    'assigned_at' => now(),
+                ]);
+            } else {
+                $mitra->audiensis()->create([
+                    'pelaksana' => $request->pelaksana,
+                    'assigned_by' => auth()->id(),
+                    'assigned_at' => now(),
+                    'status' => 'ditugaskan',
+                ]);
+            }
+
+            activity()->causedBy(auth()->user())->on($mitra)->log('audiensi_assigned');
+        });
+
+        return back()->with('success', 'Audiensi berhasil ditugaskan.');
     }
 
     public function verify(Request $request, Mitra $mitra): RedirectResponse

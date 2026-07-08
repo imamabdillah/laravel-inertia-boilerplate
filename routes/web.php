@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\RefUptController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Audiensi\AudiensiController;
 use App\Http\Controllers\Mitra\ProfilController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,9 @@ Route::get('dashboard', function () {
     $user = auth()->user();
     if ($user && $user->hasAnyRole(['super_admin', 'admin'])) {
         return redirect()->route('admin.dashboard');
+    }
+    if ($user && $user->isAudiensiPelaksana()) {
+        return redirect()->route('audiensi.index');
     }
     if ($user && $user->hasRole('mitra')) {
         return redirect()->route('mitra.profil.show');
@@ -68,6 +72,18 @@ Route::prefix('admin')
         Route::post('mitras/{mitra}/verify', [MitraController::class, 'verify'])->name('mitras.verify');
         Route::post('mitras/{mitra}/reject', [MitraController::class, 'reject'])->name('mitras.reject');
         Route::post('mitras/{mitra}/dokumens/{dokumen}/review', [MitraController::class, 'reviewDokumen'])->name('mitras.dokumens.review');
+        Route::post('mitras/{mitra}/audiensi', [MitraController::class, 'assignAudiensi'])->name('mitras.audiensi.assign');
+    });
+
+// Pelaksana audiensi: direktorat teknis / UPT (role dinamis: direktorat_*, upt_<code>),
+// plus admin/super_admin (Setditjen) untuk monitoring — otorisasi di controller & Form Request.
+Route::prefix('audiensi')
+    ->middleware(['auth', 'verified'])
+    ->name('audiensi.')
+    ->group(function () {
+        Route::get('/', [AudiensiController::class, 'index'])->name('index');
+        Route::patch('{audiensi}/jadwal', [AudiensiController::class, 'jadwal'])->name('jadwal');
+        Route::post('{audiensi}/hasil', [AudiensiController::class, 'hasil'])->name('hasil');
     });
 
 Route::prefix('mitra')

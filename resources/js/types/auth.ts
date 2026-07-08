@@ -84,6 +84,31 @@ export type DokumenMitra = {
     created_at: string;
 };
 
+export type Audiensi = {
+    id: number;
+    mitra_id: number;
+    pelaksana: string;
+    status: 'ditugaskan' | 'dijadwalkan' | 'selesai';
+    jadwal: string | null;
+    lokasi: string | null;
+    hasil: 'lanjut' | 'ditolak' | null;
+    catatan_hasil: string | null;
+    assigned_at: string | null;
+    assigned_by?: string | null;
+    completed_by?: string | null;
+    can_execute?: boolean;
+    mitra?: {
+        id: number;
+        nama_lembaga: string;
+        pic_nama: string;
+        jenjang: string[];
+        wilayah: string[];
+        upt: string[];
+        status: Mitra['status'];
+    };
+    created_at: string;
+};
+
 export type Mitra = {
     id: number;
     user_id: string;
@@ -109,7 +134,13 @@ export type Mitra = {
     nomor_akta: string | null;
     nomor_nib: string | null;
     nomor_npwp: string | null;
-    status: 'draft' | 'menunggu_verifikasi' | 'diverifikasi' | 'ditolak' | 'aktif' | 'nonaktif';
+    status:
+        | 'draft'
+        | 'menunggu_verifikasi'
+        | 'diverifikasi'
+        | 'ditolak'
+        | 'aktif'
+        | 'nonaktif';
     catatan_admin: string | null;
     verified_at: string | null;
     logo: string | null;
@@ -118,6 +149,8 @@ export type Mitra = {
     is_all_dokumen_verified: boolean;
     can_submit: boolean;
     dokumens?: DokumenMitra[];
+    suggested_pelaksana?: string;
+    latest_audiensi?: Audiensi | null;
     created_at: string;
     updated_at: string;
 };

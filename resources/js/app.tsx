@@ -19,9 +19,9 @@ createInertiaApp({
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             case name.startsWith('admin/'):
-                return null; // admin pages use AdminLayout internally
             case name.startsWith('mitra/'):
-                return null; // mitra pages use MitraLayout internally
+            case name.startsWith('audiensi/'):
+                return null; // pakai AdminLayout internally (sidebar tunggal, menu dinamis per role)
             default:
                 return AppLayout;
         }

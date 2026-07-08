@@ -46,4 +46,14 @@ class User extends Authenticatable implements PasskeyUser
             'is_active' => 'boolean',
         ];
     }
+
+    /**
+     * User unit pelaksana audiensi (direktorat teknis / UPT) — lihat modul Audiensi.
+     */
+    public function isAudiensiPelaksana(): bool
+    {
+        return $this->roles->pluck('name')->contains(
+            fn (string $role) => str_starts_with($role, 'direktorat_') || str_starts_with($role, 'upt_')
+        );
+    }
 }

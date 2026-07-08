@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Mitra extends Model
@@ -55,6 +56,15 @@ class Mitra extends Model
 
     const WILAYAH_OPTIONS = ['jawa_barat'];
 
+    // Pemetaan tag jenjang -> direktorat teknis pelaksana audiensi.
+    const JENJANG_DIREKTORAT = [
+        'paud_tk' => 'direktorat_paud',
+        'sd' => 'direktorat_dikdas',
+        'smp' => 'direktorat_dikdas',
+        'sma' => 'direktorat_dikmen',
+        'smk' => 'direktorat_dikmen',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -68,6 +78,33 @@ class Mitra extends Model
     public function verifiedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    public function audiensis(): HasMany
+    {
+        return $this->hasMany(Audiensi::class);
+    }
+
+    public function latestAudiensi(): HasOne
+    {
+        return $this->hasOne(Audiensi::class)->latestOfMany();
+    }
+
+    /**
+     * Pelaksana audiensi yang disarankan dari tag mitra: jenjang dipetakan ke
+     * direktorat (JENJANG_DIREKTORAT), tag UPT ke unit 'upt_<code>'. Tepat satu
+     * unit -> unit tersebut; lintas unit atau tanpa tag -> Setditjen.
+     */
+    public function getSuggestedPelaksanaAttribute(): string
+    {
+        $units = collect($this->jenjang ?? [])
+            ->map(fn ($jenjang) => self::JENJANG_DIREKTORAT[$jenjang] ?? null)
+            ->filter()
+            ->merge(collect($this->upt ?? [])->map(fn ($code) => "upt_{$code}"))
+            ->unique()
+            ->values();
+
+        return $units->count() === 1 ? $units->first() : Audiensi::PELAKSANA_SESDITJEN;
     }
 
     public function getIsProfileCompleteAttribute(): bool

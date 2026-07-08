@@ -3,7 +3,11 @@ import { ChevronRight } from 'lucide-react';
 import { AdminIcon } from '@/components/admin/admin-icon';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { NavUser } from '@/components/nav-user';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
     Sidebar,
     SidebarContent,
@@ -20,25 +24,32 @@ import {
     SidebarMenuSubItem,
     SidebarRail,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes/admin';
-import type { MenuItem } from '@/types';
+import { dashboard } from '@/routes';
+import type { Auth, MenuItem } from '@/types';
 
 function routeNameToUrl(routeName: string | null): string {
-    if (!routeName) return '#';
+    if (!routeName) {
+        return '#';
+    }
+
     // Path langsung (sudah diawali /) — pakai apa adanya
-    if (routeName.startsWith('/')) return routeName;
+    if (routeName.startsWith('/')) {
+        return routeName;
+    }
+
     // Route name admin.* → /admin/...
     if (routeName.startsWith('admin.')) {
         const path = routeName
             .replace(/^admin\./, '')
             .replace(/\.index$/, '')
             .replace(/\./g, '/');
+
         return '/admin/' + path;
     }
+
     // Route name lain (misal mitra.*) → /segment/...
-    const path = routeName
-        .replace(/\.index$/, '')
-        .replace(/\./g, '/');
+    const path = routeName.replace(/\.index$/, '').replace(/\./g, '/');
+
     return '/' + path;
 }
 
@@ -74,14 +85,23 @@ function NavMenuItems({ items }: { items: MenuItem[] }) {
                 if (item.children.length > 0) {
                     const childActive = item.children.some((c) => {
                         const ch = routeNameToUrl(c.route);
+
                         return ch !== '#' && url.startsWith(ch);
                     });
 
                     return (
-                        <Collapsible key={item.id} defaultOpen={childActive} asChild className="group/collapsible">
+                        <Collapsible
+                            key={item.id}
+                            defaultOpen={childActive}
+                            asChild
+                            className="group/collapsible"
+                        >
                             <SidebarMenuItem>
                                 <CollapsibleTrigger asChild>
-                                    <SidebarMenuButton tooltip={item.name} isActive={childActive}>
+                                    <SidebarMenuButton
+                                        tooltip={item.name}
+                                        isActive={childActive}
+                                    >
                                         <AdminIcon name={item.icon} />
                                         <span>{item.name}</span>
                                         <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -90,13 +110,35 @@ function NavMenuItems({ items }: { items: MenuItem[] }) {
                                 <CollapsibleContent>
                                     <SidebarMenuSub>
                                         {item.children.map((child) => {
-                                            const childHref = routeNameToUrl(child.route);
+                                            const childHref = routeNameToUrl(
+                                                child.route,
+                                            );
+
                                             return (
-                                                <SidebarMenuSubItem key={child.id}>
-                                                    <SidebarMenuSubButton asChild isActive={childHref !== '#' && url.startsWith(childHref)}>
-                                                        <Link href={childHref} prefetch>
-                                                            <AdminIcon name={child.icon} />
-                                                            <span>{child.name}</span>
+                                                <SidebarMenuSubItem
+                                                    key={child.id}
+                                                >
+                                                    <SidebarMenuSubButton
+                                                        asChild
+                                                        isActive={
+                                                            childHref !== '#' &&
+                                                            url.startsWith(
+                                                                childHref,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Link
+                                                            href={childHref}
+                                                            prefetch
+                                                        >
+                                                            <AdminIcon
+                                                                name={
+                                                                    child.icon
+                                                                }
+                                                            />
+                                                            <span>
+                                                                {child.name}
+                                                            </span>
                                                         </Link>
                                                     </SidebarMenuSubButton>
                                                 </SidebarMenuSubItem>
@@ -111,7 +153,11 @@ function NavMenuItems({ items }: { items: MenuItem[] }) {
 
                 return (
                     <SidebarMenuItem key={item.id}>
-                        <SidebarMenuButton asChild isActive={isActive} tooltip={item.name}>
+                        <SidebarMenuButton
+                            asChild
+                            isActive={isActive}
+                            tooltip={item.name}
+                        >
                             <Link href={href} prefetch>
                                 <AdminIcon name={item.icon} />
                                 <span>{item.name}</span>
@@ -126,11 +172,33 @@ function NavMenuItems({ items }: { items: MenuItem[] }) {
 
 type PageProps = {
     menus: MenuItem[];
+    auth: Auth;
 };
 
+// Satu sidebar untuk semua role — isi menu dari shared prop `menus`
+// (dibangun role-aware di HandleInertiaRequests), judul menyesuaikan role.
+function portalTitle(roles: string[]): string {
+    if (roles.includes('super_admin') || roles.includes('admin')) {
+        return 'Admin Panel';
+    }
+
+    if (
+        roles.some((r) => r.startsWith('direktorat_') || r.startsWith('upt_'))
+    ) {
+        return 'Portal Audiensi';
+    }
+
+    if (roles.includes('mitra')) {
+        return 'Portal Mitra';
+    }
+
+    return 'Portal';
+}
+
 export function AdminSidebar() {
-    const { menus } = usePage<PageProps>().props;
+    const { menus, auth } = usePage<PageProps>().props;
     const groups = groupMenus(menus ?? []);
+    const title = portalTitle(auth?.user?.roles ?? []);
 
     return (
         <Sidebar collapsible="icon" variant="sidebar">
@@ -140,13 +208,17 @@ export function AdminSidebar() {
                         <SidebarMenuButton size="lg" asChild>
                             <Link href={dashboard().url} prefetch>
                                 {/* Icon — always visible */}
-                                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-lg">
+                                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                                     <AppLogoIcon className="size-4 fill-current" />
                                 </div>
                                 {/* Text — hidden when collapsed */}
                                 <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-                                    <span className="truncate text-sm font-semibold">Admin Panel</span>
-                                    <span className="text-muted-foreground truncate text-xs">Boilerplate</span>
+                                    <span className="truncate text-sm font-semibold">
+                                        {title}
+                                    </span>
+                                    <span className="truncate text-xs text-muted-foreground">
+                                        Boilerplate
+                                    </span>
                                 </div>
                             </Link>
                         </SidebarMenuButton>

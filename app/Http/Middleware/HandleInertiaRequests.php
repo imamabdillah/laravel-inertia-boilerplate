@@ -31,36 +31,71 @@ class HandleInertiaRequests extends Middleware
 
             $canSee = fn (?string $permission): bool => $permission === null || isset($permissionSet[$permission]);
 
-            $menus = Menu::where('is_active', true)
-                ->whereNull('parent_id')
-                ->orderBy('order')
-                ->with([
-                    'group',
-                    'children' => fn ($q) => $q->where('is_active', true)->orderBy('order'),
-                ])
-                ->get()
-                ->filter(fn (Menu $menu) => $canSee($menu->permission))
-                ->map(fn (Menu $menu) => [
-                    'id' => $menu->id,
-                    'name' => $menu->name,
-                    'group' => $menu->group?->name,
-                    'icon' => $menu->icon,
-                    'route' => $menu->route,
-                    'permission' => $menu->permission,
-                    'order' => $menu->order,
-                    'children' => $menu->children
-                        ->filter(fn (Menu $child) => $canSee($child->permission))
-                        ->map(fn (Menu $child) => [
-                            'id' => $child->id,
-                            'name' => $child->name,
-                            'icon' => $child->icon,
-                            'route' => $child->route,
-                            'permission' => $child->permission,
-                            'order' => $child->order,
-                        ])
-                        ->values(),
-                ])
-                ->values();
+            // Satu sidebar untuk semua role — isi menu dinamis:
+            // admin/super_admin dari tabel menus (permission-filtered),
+            // role lain dapat menu virtual sesuai perannya.
+            if ($user->hasAnyRole(['super_admin', 'admin'])) {
+                $menus = Menu::where('is_active', true)
+                    ->whereNull('parent_id')
+                    ->orderBy('order')
+                    ->with([
+                        'group',
+                        'children' => fn ($q) => $q->where('is_active', true)->orderBy('order'),
+                    ])
+                    ->get()
+                    ->filter(fn (Menu $menu) => $canSee($menu->permission))
+                    ->map(fn (Menu $menu) => [
+                        'id' => $menu->id,
+                        'name' => $menu->name,
+                        'group' => $menu->group?->name,
+                        'icon' => $menu->icon,
+                        'route' => $menu->route,
+                        'permission' => $menu->permission,
+                        'order' => $menu->order,
+                        'children' => $menu->children
+                            ->filter(fn (Menu $child) => $canSee($child->permission))
+                            ->map(fn (Menu $child) => [
+                                'id' => $child->id,
+                                'name' => $child->name,
+                                'icon' => $child->icon,
+                                'route' => $child->route,
+                                'permission' => $child->permission,
+                                'order' => $child->order,
+                            ])
+                            ->values(),
+                    ])
+                    ->values();
+            } else {
+                $virtual = collect();
+
+                if ($user->hasRole('mitra')) {
+                    $virtual->push([
+                        'id' => -1,
+                        'name' => 'Profil Mitra',
+                        'group' => null,
+                        'icon' => 'Building2',
+                        'route' => route('mitra.profil.show', absolute: false),
+                        'permission' => null,
+                        'order' => 1,
+                        'children' => [],
+                    ]);
+                }
+
+                if ($user->isAudiensiPelaksana()) {
+                    $virtual->push([
+                        'id' => -2,
+                        'name' => 'Audiensi',
+                        'group' => null,
+                        'icon' => 'CalendarCheck',
+                        'route' => route('audiensi.index', absolute: false),
+                        'permission' => null,
+                        'order' => 2,
+                        'children' => [],
+                    ]);
+                }
+
+                $menus = $virtual->values();
+            }
         }
 
         return [

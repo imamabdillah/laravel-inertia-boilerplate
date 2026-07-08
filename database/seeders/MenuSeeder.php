@@ -21,6 +21,7 @@ class MenuSeeder extends Seeder
             ['name' => 'Settings', 'icon' => 'Settings', 'route' => 'admin.settings.index', 'permission' => 'settings.view', 'order' => 6],
             ['name' => 'Activity Log', 'icon' => 'ClipboardList', 'route' => 'admin.activity-log.index', 'permission' => 'activity-log.view', 'order' => 7],
             ['name' => 'Ref UPT', 'icon' => 'Building2', 'route' => 'admin.ref-upt.index', 'permission' => 'ref-upt.view', 'order' => 8],
+            ['name' => 'Audiensi', 'icon' => 'CalendarCheck', 'route' => '/audiensi', 'permission' => 'audiensi.view', 'order' => 9],
         ];
 
         foreach ($menus as $menu) {
