@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\MitraController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\RefUptController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
@@ -50,6 +51,12 @@ Route::prefix('admin')
         Route::patch('menus/{menu}', [MenuController::class, 'update'])->name('menus.update');
         Route::delete('menus/{menu}', [MenuController::class, 'destroy'])->name('menus.destroy');
         Route::patch('menus/{menu}/toggle-active', [MenuController::class, 'toggleActive'])->name('menus.toggle-active');
+
+        Route::get('ref-upt', [RefUptController::class, 'index'])->name('ref-upt.index');
+        Route::post('ref-upt', [RefUptController::class, 'store'])->name('ref-upt.store');
+        Route::patch('ref-upt/{refUpt}', [RefUptController::class, 'update'])->name('ref-upt.update');
+        Route::delete('ref-upt/{refUpt}', [RefUptController::class, 'destroy'])->name('ref-upt.destroy');
+        Route::patch('ref-upt/{refUpt}/toggle-active', [RefUptController::class, 'toggleActive'])->name('ref-upt.toggle-active');
 
         Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
         Route::patch('settings', [SettingController::class, 'update'])->name('settings.update');

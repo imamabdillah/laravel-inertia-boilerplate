@@ -7,6 +7,7 @@ use App\Http\Requests\Mitra\UpdateMitraRequest;
 use App\Http\Resources\MitraResource;
 use App\Models\DokumenMitra;
 use App\Models\Mitra;
+use App\Models\RefUpt;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -45,7 +46,7 @@ class ProfilController extends Controller
             'tag_options' => [
                 'jenjang' => Mitra::JENJANG_OPTIONS,
                 'wilayah' => Mitra::WILAYAH_OPTIONS,
-                'upt' => Mitra::UPT_OPTIONS,
+                'upt' => RefUpt::options(),
             ],
         ]);
     }

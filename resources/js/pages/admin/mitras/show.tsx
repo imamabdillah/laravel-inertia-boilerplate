@@ -24,7 +24,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AdminLayout from '@/layouts/admin-layout';
-import { JENJANG_LABELS, UPT_LABELS, WILAYAH_LABELS } from '@/lib/mitra-tags';
+import { JENJANG_LABELS, WILAYAH_LABELS } from '@/lib/mitra-tags';
 import type { BreadcrumbItem, DokumenMitra, Mitra } from '@/types';
 
 type LogEntry = {
@@ -37,6 +37,7 @@ type LogEntry = {
 type Props = {
     mitra: Mitra;
     logs: LogEntry[];
+    upt_labels: Record<string, string>;
 };
 
 const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ReactNode }> = {
@@ -80,7 +81,7 @@ function DetailRow({ label, value }: { label: string; value?: string | null }) {
     );
 }
 
-export default function AdminMitraShow({ mitra, logs }: Props) {
+export default function AdminMitraShow({ mitra, logs, upt_labels }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/admin/dashboard' },
         { title: 'Mitra', href: '/admin/mitras' },
@@ -195,7 +196,7 @@ export default function AdminMitraShow({ mitra, logs }: Props) {
                                     <Badge className="bg-blue-100 text-blue-800" key={`wilayah-${v}`} variant="secondary">{WILAYAH_LABELS[v] ?? v}</Badge>
                                 ))}
                                 {mitra.upt?.map((v) => (
-                                    <Badge className="bg-blue-100 text-blue-800" key={`upt-${v}`} variant="secondary">{UPT_LABELS[v] ?? v}</Badge>
+                                    <Badge className="bg-blue-100 text-blue-800" key={`upt-${v}`} variant="secondary">{upt_labels[v] ?? v}</Badge>
                                 ))}
                             </div>
                         ) : null}
@@ -274,7 +275,7 @@ export default function AdminMitraShow({ mitra, logs }: Props) {
                                     <Badge key={`wilayah-${v}`} variant="secondary">{WILAYAH_LABELS[v] ?? v}</Badge>
                                 ))}
                                 {mitra.upt?.map((v) => (
-                                    <Badge key={`upt-${v}`} variant="secondary">{UPT_LABELS[v] ?? v}</Badge>
+                                    <Badge key={`upt-${v}`} variant="secondary">{upt_labels[v] ?? v}</Badge>
                                 ))}
                             </div>
                         ) : null}

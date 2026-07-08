@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             MenuSeeder::class,
             RolePermissionSeeder::class,
             SettingSeeder::class,
+            RefUptSeeder::class,
         ]);
 
         $superAdmin = User::factory()->create([

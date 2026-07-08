@@ -38,7 +38,8 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import MitraLayout from '@/layouts/mitra-layout';
-import { JENJANG_LABELS, UPT_LABELS, WILAYAH_LABELS } from '@/lib/mitra-tags';
+import { JENJANG_LABELS, WILAYAH_LABELS } from '@/lib/mitra-tags';
+import type { TagOption } from '@/lib/mitra-tags';
 import profil from '@/routes/mitra/profil';
 import type { BreadcrumbItem, DokumenMitra, Mitra } from '@/types';
 
@@ -49,7 +50,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 type TagOptions = {
     jenjang: string[];
     wilayah: string[];
-    upt: string[];
+    upt: TagOption[];
 };
 
 type Props = {
@@ -311,6 +312,9 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib, tag_options }: P
     const dokumenMap = Object.fromEntries(
         (mitra.dokumens ?? []).map((d) => [d.jenis_dokumen, d])
     );
+
+    const uptValues = tag_options.upt.map((o) => o.value);
+    const uptLabels = Object.fromEntries(tag_options.upt.map((o) => [o.value, o.label]));
 
     const missingItems: string[] = [];
     if (!mitra.is_profile_complete) missingItems.push('Lengkapi data profil (field wajib belum semua terisi)');
@@ -597,8 +601,8 @@ export default function MitraProfilEdit({ mitra, dokumen_wajib, tag_options }: P
                             />
                             <TagMultiSelect
                                 label="UPT"
-                                options={tag_options.upt}
-                                labels={UPT_LABELS}
+                                options={uptValues}
+                                labels={uptLabels}
                                 selected={data.upt}
                                 onChange={(v) => setData('upt', v)}
                                 disabled={!canEdit}

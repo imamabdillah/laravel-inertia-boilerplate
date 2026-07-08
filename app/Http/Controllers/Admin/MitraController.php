@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\MitraResource;
 use App\Models\DokumenMitra;
 use App\Models\Mitra;
+use App\Models\RefUpt;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -53,6 +54,7 @@ class MitraController extends Controller
         return Inertia::render('admin/mitras/show', [
             'mitra' => new MitraResource($mitra),
             'logs' => $logs,
+            'upt_labels' => RefUpt::labels(),
         ]);
     }
 

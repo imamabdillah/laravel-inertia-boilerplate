@@ -12,10 +12,11 @@ export const WILAYAH_LABELS: Record<string, string> = {
     jawa_barat: 'Jawa Barat',
 };
 
-export const UPT_LABELS: Record<string, string> = {
-    bgtk_jawa_barat: 'BGTK Jawa Barat',
-};
+// Label UPT tidak lagi hardcode — sumbernya tabel ref_upts (lihat modul admin Ref UPT).
 
-export function toTagOptions(labels: Record<string, string>, values: string[]): TagOption[] {
+export function toTagOptions(
+    labels: Record<string, string>,
+    values: string[],
+): TagOption[] {
     return values.map((value) => ({ value, label: labels[value] ?? value }));
 }

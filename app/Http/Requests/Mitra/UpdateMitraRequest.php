@@ -25,7 +25,7 @@ class UpdateMitraRequest extends FormRequest
             'wilayah' => ['nullable', 'array'],
             'wilayah.*' => [Rule::in(Mitra::WILAYAH_OPTIONS)],
             'upt' => ['nullable', 'array'],
-            'upt.*' => [Rule::in(Mitra::UPT_OPTIONS)],
+            'upt.*' => [Rule::exists('ref_upts', 'code')],
             'deskripsi' => ['nullable', 'string'],
             'alamat' => ['nullable', 'string'],
             'kota' => ['nullable', 'string', 'max:100'],

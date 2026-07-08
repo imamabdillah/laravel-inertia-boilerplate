@@ -20,6 +20,7 @@ class MenuSeeder extends Seeder
             ['name' => 'Menu Management', 'icon' => 'Menu', 'route' => 'admin.menus.index', 'permission' => 'menus.view', 'order' => 5],
             ['name' => 'Settings', 'icon' => 'Settings', 'route' => 'admin.settings.index', 'permission' => 'settings.view', 'order' => 6],
             ['name' => 'Activity Log', 'icon' => 'ClipboardList', 'route' => 'admin.activity-log.index', 'permission' => 'activity-log.view', 'order' => 7],
+            ['name' => 'Ref UPT', 'icon' => 'Building2', 'route' => 'admin.ref-upt.index', 'permission' => 'ref-upt.view', 'order' => 8],
         ];
 
         foreach ($menus as $menu) {
