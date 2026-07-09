@@ -61,10 +61,13 @@ class AudiensiTest extends TestCase
 
     public function test_suggested_pelaksana_mengikuti_tag_mitra(): void
     {
-        // Satu direktorat (sd + smp keduanya dikdas)
+        // Satu direktorat (sd + smp keduanya dikdas) -> dikdas, BUKAN Setditjen
         $this->assertSame('direktorat_dikdas', $this->createMitra(['jenjang' => ['sd', 'smp']])->suggested_pelaksana);
+        $this->assertSame('direktorat_dikdas', $this->createMitra(['jenjang' => ['sd']])->suggested_pelaksana);
+        $this->assertSame('direktorat_dikmen', $this->createMitra(['jenjang' => ['sma']])->suggested_pelaksana);
 
-        // Lintas direktorat -> Setditjen
+        // Lintas direktorat (dikdas + dikmen) -> Setditjen
+        $this->assertSame('sesditjen', $this->createMitra(['jenjang' => ['sd', 'sma']])->suggested_pelaksana);
         $this->assertSame('sesditjen', $this->createMitra(['jenjang' => ['sd', 'smp', 'sma']])->suggested_pelaksana);
 
         // Hanya tag UPT -> UPT tersebut

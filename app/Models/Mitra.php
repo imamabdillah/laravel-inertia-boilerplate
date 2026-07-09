@@ -94,6 +94,8 @@ class Mitra extends Model
      * Pelaksana audiensi yang disarankan dari tag mitra: jenjang dipetakan ke
      * direktorat (JENJANG_DIREKTORAT), tag UPT ke unit 'upt_<code>'. Tepat satu
      * unit -> unit tersebut; lintas unit atau tanpa tag -> Setditjen.
+     * Catatan: sd + smp keduanya dikdas -> tetap satu unit (direktorat_dikdas),
+     * bukan Setditjen. Setditjen hanya saat lintas direktorat (mis. sd + sma).
      */
     public function getSuggestedPelaksanaAttribute(): string
     {
