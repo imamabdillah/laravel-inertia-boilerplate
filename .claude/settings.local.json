@@ -12,7 +12,16 @@
       "Bash(grep -n 'function toResponse\\\\|function wrap\\\\|\\\\$wrap' d:/Github/laravel-inertia-boilerplate/vendor/laravel/framework/src/Illuminate/Http/Resources/Json/ResourceResponse.php d:/Github/laravel-inertia-boilerplate/vendor/laravel/framework/src/Illuminate/Http/Resources/Json/JsonResource.php)",
       "Bash(grep -n \"upload_max_filesize\\\\|post_max_size\" \"C:/Users/Imam/.config/herd/bin/php83/php.ini\" 2>&1)",
       "Read(//c/Users/Imam/.config/herd/bin/php83/**)",
-      "PowerShell(php artisan debug:dok)"
+      "PowerShell(php artisan debug:dok)",
+      "Bash(npx eslint *)",
+      "Bash(npx prettier *)",
+      "Bash(npm ls *)",
+      "Bash(ls -d node_modules/.vite 2>/dev/null && ls node_modules/.vite/deps/*.js 2>/dev/null | head -5; stat -c '%y' node_modules/.vite/deps/_metadata.json 2>/dev/null)",
+      "Read(//c/Code/laravel-inertia-boilerplate/**)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 5173 -State Listen -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Process -Id 13252)",
+      "Bash(grep -v '.map$')",
+      "PowerShell(Stop-Process -Id 13252 -Force -Confirm:$false)"
     ]
   }
 }

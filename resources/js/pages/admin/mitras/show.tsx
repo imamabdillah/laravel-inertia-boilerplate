@@ -2,7 +2,9 @@ import { router, useForm } from '@inertiajs/react';
 import {
     AlertCircle,
     CalendarClock,
+    Check,
     CheckCircle2,
+    ChevronsUpDown,
     Clock,
     ExternalLink,
     FileText,
@@ -15,6 +17,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
+import {
     Dialog,
     DialogClose,
     DialogContent,
@@ -25,15 +35,14 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import AdminLayout from '@/layouts/admin-layout';
 import { JENJANG_LABELS, WILAYAH_LABELS } from '@/lib/mitra-tags';
+import { cn } from '@/lib/utils';
 import mitrasAudiensi from '@/routes/admin/mitras/audiensi';
 import type { BreadcrumbItem, DokumenMitra, Mitra } from '@/types';
 
@@ -186,6 +195,7 @@ export default function AdminMitraShow({
     const [rejectOpen, setRejectOpen] = useState(false);
     const [verifyOpen, setVerifyOpen] = useState(false);
     const [assignOpen, setAssignOpen] = useState(false);
+    const [pelaksanaOpen, setPelaksanaOpen] = useState(false);
     const [dokReviewTarget, setDokReviewTarget] = useState<DokumenMitra | null>(
         null,
     );
@@ -882,26 +892,70 @@ export default function AdminMitraShow({
                             Pelaksana{' '}
                             <span className="text-destructive">*</span>
                         </Label>
-                        <Select
-                            value={assignForm.data.pelaksana}
-                            onValueChange={(v) =>
-                                assignForm.setData('pelaksana', v)
-                            }
+                        <Popover
+                            open={pelaksanaOpen}
+                            onOpenChange={setPelaksanaOpen}
+                            modal
                         >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Pilih pelaksana" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {pelaksana_options.map((o) => (
-                                    <SelectItem key={o.value} value={o.value}>
-                                        {o.label}
-                                        {o.value === mitra.suggested_pelaksana
-                                            ? ' (disarankan)'
-                                            : ''}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={pelaksanaOpen}
+                                    className="w-full justify-between font-normal"
+                                >
+                                    <span className="truncate">
+                                        {assignForm.data.pelaksana
+                                            ? (pelaksana_labels[
+                                                  assignForm.data.pelaksana
+                                              ] ?? assignForm.data.pelaksana)
+                                            : 'Pilih pelaksana'}
+                                    </span>
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput placeholder="Cari pelaksana..." />
+                                    <CommandList>
+                                        <CommandEmpty>
+                                            Pelaksana tidak ditemukan.
+                                        </CommandEmpty>
+                                        <CommandGroup>
+                                            {pelaksana_options.map((o) => (
+                                                <CommandItem
+                                                    key={o.value}
+                                                    value={o.label}
+                                                    onSelect={() => {
+                                                        assignForm.setData(
+                                                            'pelaksana',
+                                                            o.value,
+                                                        );
+                                                        setPelaksanaOpen(false);
+                                                    }}
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            'mr-2 h-4 w-4',
+                                                            assignForm.data
+                                                                .pelaksana ===
+                                                                o.value
+                                                                ? 'opacity-100'
+                                                                : 'opacity-0',
+                                                        )}
+                                                    />
+                                                    {o.label}
+                                                    {o.value ===
+                                                    mitra.suggested_pelaksana
+                                                        ? ' (disarankan)'
+                                                        : ''}
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
                         {assignForm.errors.pelaksana && (
                             <p className="text-xs text-destructive">
                                 {assignForm.errors.pelaksana}
