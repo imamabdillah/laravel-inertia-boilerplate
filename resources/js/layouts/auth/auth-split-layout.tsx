@@ -32,7 +32,7 @@ export default function AuthSplitLayout({ children, title, description }: AuthLa
                 {/* Logo */}
                 <Link href={home()} className="relative z-10 flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-                        <AppLogoIcon className="size-5 fill-current text-white" />
+                        <AppLogoIcon className="size-5 text-white" />
                     </div>
                     <span className="font-semibold">{name ?? 'Sistem Kerjasama'}</span>
                 </Link>
@@ -75,7 +75,7 @@ export default function AuthSplitLayout({ children, title, description }: AuthLa
                     {/* Mobile logo */}
                     <Link href={home()} className="mb-8 flex items-center justify-center gap-2 lg:hidden">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-900">
-                            <AppLogoIcon className="size-5 fill-current text-white" />
+                            <AppLogoIcon className="size-5 text-white" />
                         </div>
                         <span className="font-semibold">{name ?? 'Sistem Kerjasama'}</span>
                     </Link>

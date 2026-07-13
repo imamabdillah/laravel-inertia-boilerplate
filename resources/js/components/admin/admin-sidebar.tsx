@@ -175,30 +175,26 @@ type PageProps = {
     auth: Auth;
 };
 
-// Satu sidebar untuk semua role — isi menu dari shared prop `menus`
-// (dibangun role-aware di HandleInertiaRequests), judul menyesuaikan role.
-function portalTitle(roles: string[]): string {
-    if (roles.includes('super_admin') || roles.includes('admin')) {
-        return 'Admin Panel';
-    }
-
-    if (
-        roles.some((r) => r.startsWith('direktorat_') || r.startsWith('upt_'))
-    ) {
-        return 'Portal Audiensi';
-    }
-
-    if (roles.includes('mitra')) {
-        return 'Portal Mitra';
-    }
-
-    return 'Portal';
+// "super_admin" -> "Super Admin", dst.
+function formatRoleLabel(roles: string[]): string {
+    return roles
+        .map((role) =>
+            role
+                .split('_')
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' '),
+        )
+        .join(', ');
 }
 
+// Satu sidebar untuk semua role — isi menu dari shared prop `menus`
+// (dibangun role-aware di HandleInertiaRequests), header pakai identitas user
+// (nama + role) biar sama persis di semua role, gak perlu title per-role.
 export function AdminSidebar() {
     const { menus, auth } = usePage<PageProps>().props;
     const groups = groupMenus(menus ?? []);
-    const title = portalTitle(auth?.user?.roles ?? []);
+    const userName = auth?.user?.name ?? 'User';
+    const userRole = formatRoleLabel(auth?.user?.roles ?? []);
 
     return (
         <Sidebar collapsible="icon" variant="sidebar">
@@ -209,15 +205,15 @@ export function AdminSidebar() {
                             <Link href={dashboard().url} prefetch>
                                 {/* Icon — always visible */}
                                 <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                                    <AppLogoIcon className="size-4 fill-current" />
+                                    <AppLogoIcon className="size-4" />
                                 </div>
                                 {/* Text — hidden when collapsed */}
                                 <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
                                     <span className="truncate text-sm font-semibold">
-                                        {title}
+                                        {userRole || 'User'}
                                     </span>
                                     <span className="truncate text-xs text-muted-foreground">
-                                        Boilerplate
+                                        {userName}
                                     </span>
                                 </div>
                             </Link>

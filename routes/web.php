@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\MitraController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\RefDirektoratController;
 use App\Http\Controllers\Admin\RefUptController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
@@ -61,6 +62,12 @@ Route::prefix('admin')
         Route::patch('ref-upt/{refUpt}', [RefUptController::class, 'update'])->name('ref-upt.update');
         Route::delete('ref-upt/{refUpt}', [RefUptController::class, 'destroy'])->name('ref-upt.destroy');
         Route::patch('ref-upt/{refUpt}/toggle-active', [RefUptController::class, 'toggleActive'])->name('ref-upt.toggle-active');
+
+        Route::get('ref-direktorat', [RefDirektoratController::class, 'index'])->name('ref-direktorat.index');
+        Route::post('ref-direktorat', [RefDirektoratController::class, 'store'])->name('ref-direktorat.store');
+        Route::patch('ref-direktorat/{refDirektorat}', [RefDirektoratController::class, 'update'])->name('ref-direktorat.update');
+        Route::delete('ref-direktorat/{refDirektorat}', [RefDirektoratController::class, 'destroy'])->name('ref-direktorat.destroy');
+        Route::patch('ref-direktorat/{refDirektorat}/toggle-active', [RefDirektoratController::class, 'toggleActive'])->name('ref-direktorat.toggle-active');
 
         Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
         Route::patch('settings', [SettingController::class, 'update'])->name('settings.update');

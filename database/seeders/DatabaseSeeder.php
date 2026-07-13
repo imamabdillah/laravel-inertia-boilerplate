@@ -14,9 +14,10 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             MenuSeeder::class,
-            RolePermissionSeeder::class,
             SettingSeeder::class,
             RefUptSeeder::class,
+            RefDirektoratSeeder::class,
+            RolePermissionSeeder::class,
         ]);
 
         $superAdmin = User::factory()->create([

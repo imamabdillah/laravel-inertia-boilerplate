@@ -13,12 +13,6 @@ class Audiensi extends Model
 
     public const PELAKSANA_SESDITJEN = 'sesditjen';
 
-    public const DIREKTORAT_LABELS = [
-        'direktorat_paud' => 'Direktorat PAUD',
-        'direktorat_dikdas' => 'Direktorat Dikdas',
-        'direktorat_dikmen' => 'Direktorat Dikmen',
-    ];
-
     protected $table = 'audiensis';
 
     protected $fillable = [
@@ -58,7 +52,8 @@ class Audiensi extends Model
     }
 
     /**
-     * Label semua kemungkinan pelaksana: Setditjen, direktorat teknis, dan seluruh UPT (ref_upts).
+     * Label semua kemungkinan pelaksana: Setditjen, direktorat teknis (ref_direktorats),
+     * dan seluruh UPT (ref_upts).
      *
      * @return array<string, string>
      */
@@ -69,7 +64,7 @@ class Audiensi extends Model
             $upt["upt_{$code}"] = $name;
         }
 
-        return [self::PELAKSANA_SESDITJEN => 'Setditjen GTK'] + self::DIREKTORAT_LABELS + $upt;
+        return [self::PELAKSANA_SESDITJEN => 'Setditjen GTK'] + RefDirektorat::labels() + $upt;
     }
 
     /**
