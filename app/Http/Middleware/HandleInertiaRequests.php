@@ -23,6 +23,8 @@ class HandleInertiaRequests extends Middleware
         $menus = [];
 
         if ($user) {
+            $user->loadMissing(['direktorat', 'upt']);
+
             // Load once — used both for auth.permissions (frontend) and menu filtering.
             // Using the same source ensures sidebar visibility is always in sync
             // with what auth.permissions says the user has.

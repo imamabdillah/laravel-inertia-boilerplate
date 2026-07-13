@@ -1,3 +1,8 @@
+export type UnitRef = {
+    id: number;
+    name: string;
+};
+
 export type User = {
     id: string;
     name: string;
@@ -8,6 +13,8 @@ export type User = {
     is_active?: boolean;
     roles?: string[];
     permissions?: string[];
+    direktorat?: UnitRef | null;
+    upt?: UnitRef | null;
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
@@ -27,6 +34,10 @@ export type AdminUser = {
     email: string;
     is_active: boolean;
     roles: string[];
+    direktorat_id?: number | null;
+    upt_id?: number | null;
+    direktorat?: UnitRef | null;
+    upt?: UnitRef | null;
     created_at: string;
 };
 

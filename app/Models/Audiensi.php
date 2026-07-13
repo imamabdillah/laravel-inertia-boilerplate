@@ -82,7 +82,8 @@ class Audiensi extends Model
 
     /**
      * Pelaksana 'sesditjen' dieksekusi oleh admin/super_admin; unit lain oleh
-     * user ber-role sama dengan nilai pelaksana (mis. 'direktorat_dikdas', 'upt_<code>').
+     * user dengan pelaksanaUnitCode() yang cocok (role admin_direktorat/admin_upt
+     * + direktorat_id/upt_id yang sesuai — lihat User::pelaksanaUnitCode()).
      */
     public function canBeExecutedBy(User $user): bool
     {
@@ -90,7 +91,7 @@ class Audiensi extends Model
             return $user->hasAnyRole(['super_admin', 'admin']);
         }
 
-        return $user->hasRole('super_admin') || $user->hasRole($this->pelaksana);
+        return $user->hasRole('super_admin') || $user->pelaksanaUnitCode() === $this->pelaksana;
     }
 
     /**
@@ -104,6 +105,8 @@ class Audiensi extends Model
             return $query;
         }
 
-        return $query->whereIn('pelaksana', $user->roles->pluck('name'));
+        $unitCode = $user->pelaksanaUnitCode();
+
+        return $unitCode ? $query->where('pelaksana', $unitCode) : $query->whereRaw('1 = 0');
     }
 }

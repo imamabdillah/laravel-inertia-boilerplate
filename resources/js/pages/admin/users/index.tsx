@@ -94,6 +94,8 @@ export default function UsersIndex({ users, roles, filters }: Props) {
     const roleBadgeColor: Record<string, string> = {
         super_admin: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
         admin: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+        admin_direktorat: 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300',
+        admin_upt: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
     };
 
     return (
@@ -185,6 +187,11 @@ export default function UsersIndex({ users, roles, filters }: Props) {
                                                     </span>
                                                 ))}
                                             </div>
+                                            {(user.direktorat || user.upt) && (
+                                                <p className="text-muted-foreground mt-1 text-xs">
+                                                    {user.direktorat?.name ?? user.upt?.name}
+                                                </p>
+                                            )}
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">

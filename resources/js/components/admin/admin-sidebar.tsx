@@ -194,7 +194,8 @@ export function AdminSidebar() {
     const { menus, auth } = usePage<PageProps>().props;
     const groups = groupMenus(menus ?? []);
     const userName = auth?.user?.name ?? 'User';
-    const userRole = formatRoleLabel(auth?.user?.roles ?? []);
+    const unitName = auth?.user?.direktorat?.name ?? auth?.user?.upt?.name;
+    const userRole = unitName ?? formatRoleLabel(auth?.user?.roles ?? []);
 
     return (
         <Sidebar collapsible="icon" variant="sidebar">

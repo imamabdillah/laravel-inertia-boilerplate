@@ -2,11 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Mitra;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\Mitra
+ * @mixin Mitra
  */
 class MitraResource extends JsonResource
 {

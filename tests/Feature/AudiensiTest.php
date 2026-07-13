@@ -4,8 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Audiensi;
 use App\Models\Mitra;
+use App\Models\RefDirektorat;
+use App\Models\RefUpt;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -17,8 +20,15 @@ class AudiensiTest extends TestCase
     {
         parent::setUp();
 
-        foreach (['admin', 'mitra', 'direktorat_dikdas', 'direktorat_dikmen'] as $role) {
+        foreach (['super_admin', 'admin', 'mitra', 'admin_direktorat', 'admin_upt'] as $role) {
             Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
+        }
+
+        // AssignAudiensiRequest memvalidasi 'pelaksana' terhadap data RefDirektorat/RefUpt
+        // sungguhan (Audiensi::pelaksanaLabels()), bukan cuma nama role — jadi kode yang
+        // dipakai berulang di test ini butuh row referensinya sendiri.
+        foreach (['direktorat_dikdas' => 'Direktorat Dikdas', 'direktorat_dikmen' => 'Direktorat Dikmen'] as $code => $name) {
+            RefDirektorat::firstOrCreate(['code' => $code], ['name' => $name, 'order' => 1, 'is_active' => true]);
         }
     }
 
@@ -30,11 +40,37 @@ class AudiensiTest extends TestCase
         return $admin;
     }
 
-    private function createPelaksana(string $role): User
+    private function createSuperAdmin(): User
     {
-        Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
+        $superAdmin = User::factory()->create();
+        $superAdmin->assignRole('super_admin');
+        $superAdmin->givePermissionTo(
+            Permission::firstOrCreate(['name' => 'users.create', 'guard_name' => 'web']),
+            Permission::firstOrCreate(['name' => 'users.edit', 'guard_name' => 'web']),
+        );
+
+        return $superAdmin;
+    }
+
+    /**
+     * Buat user pelaksana audiensi. $pelaksanaCode adalah nilai Audiensi::pelaksana
+     * (mis. 'direktorat_dikdas' atau 'upt_bgtk_jawa_barat') — user di-assign role
+     * generik yang sesuai (admin_direktorat/admin_upt) plus unit yang cocok.
+     */
+    private function createPelaksana(string $pelaksanaCode): User
+    {
         $user = User::factory()->create();
-        $user->assignRole($role);
+
+        if (str_starts_with($pelaksanaCode, 'upt_')) {
+            $code = substr($pelaksanaCode, 4);
+            $upt = RefUpt::firstOrCreate(['code' => $code], ['name' => $code, 'order' => 1, 'is_active' => true]);
+            $user->assignRole('admin_upt');
+            $user->update(['upt_id' => $upt->id]);
+        } else {
+            $direktorat = RefDirektorat::firstOrCreate(['code' => $pelaksanaCode], ['name' => $pelaksanaCode, 'order' => 1, 'is_active' => true]);
+            $user->assignRole('admin_direktorat');
+            $user->update(['direktorat_id' => $direktorat->id]);
+        }
 
         return $user;
     }
@@ -196,5 +232,74 @@ class AudiensiTest extends TestCase
         $mitraUser = User::factory()->create();
         $mitraUser->assignRole('mitra');
         $this->actingAs($mitraUser)->get('/audiensi')->assertForbidden();
+    }
+
+    public function test_index_dibatasi_sesuai_unit_upt(): void
+    {
+        $mitraA = $this->createMitra();
+        $mitraA->audiensis()->create(['pelaksana' => 'upt_bgtk_jawa_barat', 'status' => 'ditugaskan']);
+        $mitraB = $this->createMitra(['email_lembaga' => 'lain@example.com']);
+        $mitraB->audiensis()->create(['pelaksana' => 'upt_bgtk_jawa_tengah', 'status' => 'ditugaskan']);
+
+        $uptJabar = $this->createPelaksana('upt_bgtk_jawa_barat');
+
+        $this->assertSame(1, Audiensi::forUser($uptJabar)->count());
+    }
+
+    public function test_super_admin_dapat_membuat_admin_direktorat(): void
+    {
+        $direktorat = RefDirektorat::create(['code' => 'direktorat_paud', 'name' => 'Direktorat PAUD', 'order' => 1, 'is_active' => true]);
+
+        $response = $this->actingAs($this->createSuperAdmin())->post('/admin/users', [
+            'name' => 'Admin PAUD',
+            'email' => 'admin.paud@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'roles' => ['admin_direktorat'],
+            'direktorat_id' => $direktorat->id,
+            'is_active' => true,
+        ]);
+
+        $response->assertRedirect('/admin/users');
+
+        $user = User::where('email', 'admin.paud@example.com')->firstOrFail();
+        $this->assertTrue($user->hasRole('admin_direktorat'));
+        $this->assertSame($direktorat->id, $user->direktorat_id);
+        $this->assertSame('direktorat_paud', $user->pelaksanaUnitCode());
+    }
+
+    public function test_admin_direktorat_wajib_pilih_direktorat(): void
+    {
+        $response = $this->actingAs($this->createSuperAdmin())->post('/admin/users', [
+            'name' => 'Admin Tanpa Unit',
+            'email' => 'admin.tanpaunit@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'roles' => ['admin_direktorat'],
+            'is_active' => true,
+        ]);
+
+        $response->assertSessionHasErrors('direktorat_id');
+        $this->assertDatabaseMissing('users', ['email' => 'admin.tanpaunit@example.com']);
+    }
+
+    public function test_user_tidak_boleh_jadi_admin_direktorat_dan_admin_upt_sekaligus(): void
+    {
+        $direktorat = RefDirektorat::where('code', 'direktorat_dikmen')->firstOrFail();
+        $upt = RefUpt::create(['code' => 'bgtk_bali', 'name' => 'BGTK Bali', 'order' => 1, 'is_active' => true]);
+
+        $response = $this->actingAs($this->createSuperAdmin())->post('/admin/users', [
+            'name' => 'Admin Rangkap',
+            'email' => 'admin.rangkap@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'roles' => ['admin_direktorat', 'admin_upt'],
+            'direktorat_id' => $direktorat->id,
+            'upt_id' => $upt->id,
+            'is_active' => true,
+        ]);
+
+        $response->assertSessionHasErrors('roles');
+        $this->assertDatabaseMissing('users', ['email' => 'admin.rangkap@example.com']);
     }
 }

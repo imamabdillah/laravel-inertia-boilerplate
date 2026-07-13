@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Menu;
-use App\Models\RefDirektorat;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -47,10 +46,10 @@ class RolePermissionSeeder extends Seeder
         // Default role untuk user yang register sendiri (lihat CreateNewUser).
         Role::firstOrCreate(['name' => 'mitra', 'guard_name' => 'web']);
 
-        // Role pelaksana audiensi (direktorat teknis, dari ref_direktorats). Role UPT
-        // (upt_<code>) dibuat otomatis saat penugasan — lihat MitraController@assignAudiensi.
-        foreach (RefDirektorat::pluck('code') as $direktorat) {
-            Role::firstOrCreate(['name' => $direktorat, 'guard_name' => 'web']);
-        }
+        // Role pelaksana audiensi: generik, unit spesifiknya ditentukan oleh
+        // User::direktorat_id / User::upt_id (lihat User::pelaksanaUnitCode()),
+        // bukan satu role per direktorat/UPT.
+        Role::firstOrCreate(['name' => 'admin_direktorat', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'admin_upt', 'guard_name' => 'web']);
     }
 }

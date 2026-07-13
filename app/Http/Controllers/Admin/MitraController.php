@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Activitylog\Models\Activity;
-use Spatie\Permission\Models\Role;
 
 class MitraController extends Controller
 {
@@ -77,12 +76,6 @@ class MitraController extends Controller
         }
 
         DB::transaction(function () use ($request, $mitra, $active) {
-            // Pastikan role pelaksana ada supaya user unit bisa langsung di-assign
-            // lewat Role Management (role UPT dibuat dinamis: upt_<code>).
-            if ($request->pelaksana !== Audiensi::PELAKSANA_SESDITJEN) {
-                Role::firstOrCreate(['name' => $request->pelaksana, 'guard_name' => 'web']);
-            }
-
             if ($active) {
                 $active->update([
                     'pelaksana' => $request->pelaksana,
