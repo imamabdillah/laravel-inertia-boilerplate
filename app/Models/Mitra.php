@@ -90,6 +90,16 @@ class Mitra extends Model
         return $this->hasOne(Audiensi::class)->latestOfMany();
     }
 
+    public function pembahasans(): HasMany
+    {
+        return $this->hasMany(Pembahasan::class);
+    }
+
+    public function latestPembahasan(): HasOne
+    {
+        return $this->hasOne(Pembahasan::class)->latestOfMany();
+    }
+
     /**
      * Pelaksana audiensi yang disarankan dari tag mitra: jenjang dipetakan ke
      * direktorat (JENJANG_DIREKTORAT), tag UPT ke unit 'upt_<code>'. Tepat satu

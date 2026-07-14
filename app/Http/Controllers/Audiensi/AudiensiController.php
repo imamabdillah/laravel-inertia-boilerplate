@@ -7,6 +7,7 @@ use App\Http\Requests\Audiensi\HasilAudiensiRequest;
 use App\Http\Requests\Audiensi\JadwalAudiensiRequest;
 use App\Http\Resources\AudiensiResource;
 use App\Models\Audiensi;
+use App\Models\Pembahasan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -76,12 +77,21 @@ class AudiensiController extends Controller
             ]);
 
             // Audiensi ditolak = pengajuan ditolak (lihat flowchart Pengajuan).
-            // Hasil 'lanjut' jadi gerbang masuk fase Pembahasan (modul berikutnya).
+            // Hasil 'lanjut' jadi gerbang masuk fase Pembahasan — auto-create record-nya di sini.
             if ($request->hasil === 'ditolak') {
                 $audiensi->mitra->update([
                     'status' => 'ditolak',
                     'catatan_admin' => $request->catatan_hasil,
                 ]);
+            } else {
+                $audiensi->mitra->pembahasans()->create([
+                    'audiensi_id' => $audiensi->id,
+                    'pelaksana' => $audiensi->pelaksana,
+                    'tahap' => Pembahasan::TAHAP_AWAL,
+                    'status' => 'berjalan',
+                ]);
+
+                activity()->causedBy(auth()->user())->on($audiensi->mitra)->log('pembahasan_dimulai');
             }
 
             activity()->causedBy(auth()->user())->on($audiensi->mitra)

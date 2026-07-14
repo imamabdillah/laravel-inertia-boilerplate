@@ -8,6 +8,7 @@ use App\Http\Resources\MitraResource;
 use App\Models\Audiensi;
 use App\Models\DokumenMitra;
 use App\Models\Mitra;
+use App\Models\Pembahasan;
 use App\Models\RefUpt;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,7 +40,11 @@ class MitraController extends Controller
 
     public function show(Mitra $mitra): Response
     {
-        $mitra->load(['user', 'dokumens', 'verifiedBy', 'latestAudiensi.assignedBy', 'latestAudiensi.completedBy']);
+        $mitra->load([
+            'user', 'dokumens', 'verifiedBy',
+            'latestAudiensi.assignedBy', 'latestAudiensi.completedBy',
+            'latestPembahasan.completedBy',
+        ]);
 
         $logs = Activity::where('subject_type', Mitra::class)
             ->where('subject_id', $mitra->id)
@@ -60,6 +65,7 @@ class MitraController extends Controller
             'upt_labels' => RefUpt::labels(),
             'pelaksana_options' => Audiensi::pelaksanaOptions(),
             'pelaksana_labels' => Audiensi::pelaksanaLabels(),
+            'pembahasan_tahap_labels' => Pembahasan::tahapLabels(),
         ]);
     }
 

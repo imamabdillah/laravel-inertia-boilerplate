@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Audiensi\AudiensiController;
 use App\Http\Controllers\Mitra\ProfilController;
+use App\Http\Controllers\Pembahasan\PembahasanController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -91,6 +92,18 @@ Route::prefix('audiensi')
         Route::get('/', [AudiensiController::class, 'index'])->name('index');
         Route::patch('{audiensi}/jadwal', [AudiensiController::class, 'jadwal'])->name('jadwal');
         Route::post('{audiensi}/hasil', [AudiensiController::class, 'hasil'])->name('hasil');
+    });
+
+// Pembahasan: lanjutan Audiensi. Tahap 1-3 dieksekusi pelaksana (direktorat/UPT,
+// warisan dari audiensi.pelaksana), tahap 4-6 hanya admin/super_admin (Setditjen)
+// — otorisasi di model Pembahasan & Form Request, bukan middleware role di sini.
+Route::prefix('pembahasan')
+    ->middleware(['auth', 'verified'])
+    ->name('pembahasan.')
+    ->group(function () {
+        Route::get('/', [PembahasanController::class, 'index'])->name('index');
+        Route::patch('{pembahasan}/advance', [PembahasanController::class, 'advance'])->name('advance');
+        Route::post('{pembahasan}/batal', [PembahasanController::class, 'batalkan'])->name('batal');
     });
 
 Route::prefix('mitra')

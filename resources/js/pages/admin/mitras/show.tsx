@@ -1,4 +1,4 @@
-import { router, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import {
     AlertCircle,
     CalendarClock,
@@ -7,6 +7,7 @@ import {
     ChevronsUpDown,
     Clock,
     ExternalLink,
+    FileSignature,
     FileText,
     UserCheck,
     XCircle,
@@ -44,6 +45,7 @@ import AdminLayout from '@/layouts/admin-layout';
 import { JENJANG_LABELS, WILAYAH_LABELS } from '@/lib/mitra-tags';
 import { cn } from '@/lib/utils';
 import mitrasAudiensi from '@/routes/admin/mitras/audiensi';
+import pembahasanRoutes from '@/routes/pembahasan';
 import type { BreadcrumbItem, DokumenMitra, Mitra } from '@/types';
 
 type LogEntry = {
@@ -59,6 +61,7 @@ type Props = {
     upt_labels: Record<string, string>;
     pelaksana_options: { value: string; label: string }[];
     pelaksana_labels: Record<string, string>;
+    pembahasan_tahap_labels: Record<string, string>;
 };
 
 const AUDIENSI_STATUS: Record<string, { label: string; className: string }> = {
@@ -87,6 +90,24 @@ const AUDIENSI_HASIL: Record<string, { label: string; className: string }> = {
     },
     ditolak: {
         label: 'Ditolak',
+        className:
+            'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+    },
+};
+
+const PEMBAHASAN_STATUS: Record<string, { label: string; className: string }> = {
+    berjalan: {
+        label: 'Berjalan',
+        className:
+            'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+    },
+    selesai: {
+        label: 'Selesai',
+        className:
+            'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    },
+    dibatalkan: {
+        label: 'Dibatalkan',
         className:
             'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
     },
@@ -185,6 +206,7 @@ export default function AdminMitraShow({
     upt_labels,
     pelaksana_options,
     pelaksana_labels,
+    pembahasan_tahap_labels,
 }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/admin/dashboard' },
@@ -272,6 +294,7 @@ export default function AdminMitraShow({
     };
 
     const audiensi = mitra.latest_audiensi;
+    const pembahasan = mitra.latest_pembahasan;
     // Penugasan bisa dibuat/diubah selama belum dijadwalkan pelaksana.
     const canAssign =
         mitra.status === 'diverifikasi' &&
@@ -505,6 +528,78 @@ export default function AdminMitraShow({
                                     />
                                 </div>
                             )}
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Pembahasan — auto-dibuat saat hasil audiensi 'lanjut' (lihat flow Pengajuan) */}
+                {pembahasan && (
+                    <Card className="mb-4">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <FileSignature className="h-4 w-4" />
+                                Pembahasan
+                            </CardTitle>
+                            <Button size="sm" variant="outline" asChild>
+                                <Link href={pembahasanRoutes.index().url}>
+                                    Kelola di Pembahasan
+                                    <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+                                </Link>
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid gap-1">
+                                <DetailRow
+                                    label="Pelaksana"
+                                    value={
+                                        pelaksana_labels[
+                                            pembahasan.pelaksana
+                                        ] ?? pembahasan.pelaksana
+                                    }
+                                />
+                                <DetailRow
+                                    label="Tahap Saat Ini"
+                                    value={
+                                        pembahasan_tahap_labels[
+                                            pembahasan.tahap
+                                        ] ?? pembahasan.tahap
+                                    }
+                                />
+                                <DetailRow
+                                    label="Status"
+                                    value={
+                                        (
+                                            PEMBAHASAN_STATUS[
+                                                pembahasan.status
+                                            ] ?? PEMBAHASAN_STATUS.berjalan
+                                        ).label
+                                    }
+                                />
+                                <DetailRow
+                                    label="Ruang Lingkup"
+                                    value={pembahasan.ruang_lingkup}
+                                />
+                                <DetailRow
+                                    label="Rencana Kerja"
+                                    value={pembahasan.rencana_kerja}
+                                />
+                                <DetailRow
+                                    label="Nomor PKS"
+                                    value={pembahasan.nomor_pks}
+                                />
+                                <DetailRow
+                                    label="Tanggal Tandatangan"
+                                    value={pembahasan.tanggal_tandatangan}
+                                />
+                                <DetailRow
+                                    label="Catatan"
+                                    value={pembahasan.catatan}
+                                />
+                                <DetailRow
+                                    label="Terakhir diperbarui oleh"
+                                    value={pembahasan.completed_by}
+                                />
+                            </div>
                         </CardContent>
                     </Card>
                 )}

@@ -171,6 +171,15 @@ class AudiensiTest extends TestCase
         $this->assertSame('selesai', $audiensi->status);
         $this->assertSame('lanjut', $audiensi->hasil);
         $this->assertSame('diverifikasi', $mitra->fresh()->status);
+
+        // Hasil 'lanjut' jadi gerbang otomatis masuk fase Pembahasan.
+        $this->assertDatabaseHas('pembahasans', [
+            'mitra_id' => $mitra->id,
+            'audiensi_id' => $audiensi->id,
+            'pelaksana' => 'direktorat_dikdas',
+            'tahap' => 'awal',
+            'status' => 'berjalan',
+        ]);
     }
 
     public function test_hasil_ditolak_menolak_pengajuan_mitra(): void

@@ -120,6 +120,39 @@ export type Audiensi = {
     created_at: string;
 };
 
+export type Pembahasan = {
+    id: number;
+    mitra_id: number;
+    audiensi_id: number | null;
+    pelaksana: string;
+    tahap:
+        | 'awal'
+        | 'lanjutan'
+        | 'rk'
+        | 'finalisasi'
+        | 'validasi'
+        | 'penandatanganan';
+    status: 'berjalan' | 'selesai' | 'dibatalkan';
+    ruang_lingkup: string | null;
+    rencana_kerja: string | null;
+    nomor_pks: string | null;
+    tanggal_tandatangan: string | null;
+    catatan: string | null;
+    completed_by?: string | null;
+    can_advance?: boolean;
+    can_batalkan?: boolean;
+    mitra?: {
+        id: number;
+        nama_lembaga: string;
+        pic_nama: string;
+        jenjang: string[];
+        wilayah: string[];
+        upt: string[];
+        status: Mitra['status'];
+    };
+    created_at: string;
+};
+
 export type Mitra = {
     id: number;
     user_id: string;
@@ -162,6 +195,7 @@ export type Mitra = {
     dokumens?: DokumenMitra[];
     suggested_pelaksana?: string;
     latest_audiensi?: Audiensi | null;
+    latest_pembahasan?: Pembahasan | null;
     created_at: string;
     updated_at: string;
 };

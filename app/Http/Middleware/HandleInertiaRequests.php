@@ -94,6 +94,17 @@ class HandleInertiaRequests extends Middleware
                         'order' => 2,
                         'children' => [],
                     ]);
+
+                    $virtual->push([
+                        'id' => -3,
+                        'name' => 'Pembahasan',
+                        'group' => null,
+                        'icon' => 'FileSignature',
+                        'route' => route('pembahasan.index', absolute: false),
+                        'permission' => null,
+                        'order' => 3,
+                        'children' => [],
+                    ]);
                 }
 
                 $menus = $virtual->values();

@@ -61,6 +61,7 @@ class MitraResource extends JsonResource
             'dokumens' => DokumenMitraResource::collection($this->whenLoaded('dokumens')),
             'suggested_pelaksana' => $this->suggested_pelaksana,
             'latest_audiensi' => new AudiensiResource($this->whenLoaded('latestAudiensi')),
+            'latest_pembahasan' => new PembahasanResource($this->whenLoaded('latestPembahasan')),
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
         ];

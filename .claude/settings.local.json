@@ -24,7 +24,10 @@
       "PowerShell(Stop-Process -Id 13252 -Force -Confirm:$false)",
       "Bash(php vendor/bin/phpunit --filter=test_admin_dapat_menugaskan_audiensi tests/Feature/AudiensiTest.php)",
       "Bash(composer lint *)",
-      "Bash(php -d memory_limit=1G vendor/bin/phpstan analyse --memory-limit=1G app/Models/Audiensi.php app/Models/User.php app/Http/Requests/Admin/StoreUserRequest.php app/Http/Requests/Admin/UpdateUserRequest.php app/Http/Resources/UserResource.php database/seeders/RolePermissionSeeder.php database/migrations/2026_07_13_000000_add_direktorat_id_and_upt_id_to_users_table.php app/Http/Controllers/Admin/UserController.php)"
+      "Bash(php -d memory_limit=1G vendor/bin/phpstan analyse --memory-limit=1G app/Models/Audiensi.php app/Models/User.php app/Http/Requests/Admin/StoreUserRequest.php app/Http/Requests/Admin/UpdateUserRequest.php app/Http/Resources/UserResource.php database/seeders/RolePermissionSeeder.php database/migrations/2026_07_13_000000_add_direktorat_id_and_upt_id_to_users_table.php app/Http/Controllers/Admin/UserController.php)",
+      "Bash(ls -la \"/c/Users/Imam/.claude/projects/\" 2>&1 | grep -i laravel)",
+      "Read(//c/Users/Imam/.claude/projects//**)",
+      "Bash(git stash *)"
     ]
   }
 }

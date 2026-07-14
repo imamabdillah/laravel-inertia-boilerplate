@@ -23,6 +23,7 @@ class MenuSeeder extends Seeder
             ['name' => 'Ref UPT', 'icon' => 'Building2', 'route' => 'admin.ref-upt.index', 'permission' => 'ref-upt.view', 'order' => 8],
             ['name' => 'Ref Direktorat', 'icon' => 'Landmark', 'route' => 'admin.ref-direktorat.index', 'permission' => 'ref-direktorat.view', 'order' => 9],
             ['name' => 'Audiensi', 'icon' => 'CalendarCheck', 'route' => '/audiensi', 'permission' => 'audiensi.view', 'order' => 10],
+            ['name' => 'Pembahasan', 'icon' => 'FileSignature', 'route' => '/pembahasan', 'permission' => 'pembahasan.view', 'order' => 11],
         ];
 
         foreach ($menus as $menu) {
