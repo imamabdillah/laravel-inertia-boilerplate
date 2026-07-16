@@ -154,6 +154,7 @@ class AudiensiTest extends TestCase
         $this->actingAs($pelaksana)
             ->patch("/audiensi/{$audiensi->id}/jadwal", [
                 'jadwal' => '2026-07-20T10:00',
+                'moda' => 'luring',
                 'lokasi' => 'Ruang Rapat GTK Lt. 12',
             ])
             ->assertRedirect();
@@ -179,6 +180,14 @@ class AudiensiTest extends TestCase
             'pelaksana' => 'direktorat_dikdas',
             'tahap' => 'awal',
             'status' => 'berjalan',
+        ]);
+
+        // Histori "dimulai" tercatat otomatis di pembahasan_histories.
+        $pembahasan = $mitra->pembahasans()->first();
+        $this->assertDatabaseHas('pembahasan_histories', [
+            'pembahasan_id' => $pembahasan->id,
+            'tahap' => 'awal',
+            'event' => 'dimulai',
         ]);
     }
 

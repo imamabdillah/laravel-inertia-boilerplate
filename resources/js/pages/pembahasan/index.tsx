@@ -1,5 +1,5 @@
-import { router, useForm } from '@inertiajs/react';
-import { CalendarCheck, CheckCircle2, XCircle } from 'lucide-react';
+import { Link, router, useForm } from '@inertiajs/react';
+import { CalendarCheck, CheckCircle2, Eye, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -297,6 +297,23 @@ export default function PembahasanIndex({
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-1.5">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-7 text-xs"
+                                                        asChild
+                                                    >
+                                                        <Link
+                                                            href={
+                                                                pembahasanRoutes.show(
+                                                                    p.id,
+                                                                ).url
+                                                            }
+                                                        >
+                                                            <Eye className="mr-1 h-3.5 w-3.5" />
+                                                            Detail
+                                                        </Link>
+                                                    </Button>
                                                     {p.can_advance &&
                                                         p.status ===
                                                             'berjalan' && (

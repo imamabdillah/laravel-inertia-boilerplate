@@ -124,6 +124,24 @@ class PembahasanTest extends TestCase
         $this->assertSame('finalisasi', $pembahasan->tahap);
         $this->assertSame('berjalan', $pembahasan->status);
         $this->assertSame('Pelatihan 3 batch, masing-masing 40 peserta.', $pembahasan->rencana_kerja);
+
+        // Setiap advance mencatat histori tahap yang baru saja diselesaikan.
+        $this->assertSame(
+            ['awal', 'lanjutan', 'rk'],
+            $pembahasan->histories()->pluck('tahap')->all(),
+        );
+        $this->assertDatabaseHas('pembahasan_histories', [
+            'pembahasan_id' => $pembahasan->id,
+            'tahap' => 'awal',
+            'event' => 'tahap_selesai',
+            'ruang_lingkup' => 'Pelatihan guru PAUD di wilayah Jawa Barat.',
+        ]);
+        $this->assertDatabaseHas('pembahasan_histories', [
+            'pembahasan_id' => $pembahasan->id,
+            'tahap' => 'rk',
+            'event' => 'tahap_selesai',
+            'rencana_kerja' => 'Pelatihan 3 batch, masing-masing 40 peserta.',
+        ]);
     }
 
     public function test_pelaksana_direktorat_tidak_bisa_advance_tahap_setditjen(): void
@@ -204,6 +222,11 @@ class PembahasanTest extends TestCase
         $pembahasan->refresh();
         $this->assertSame('dibatalkan', $pembahasan->status);
         $this->assertSame('ditolak', $mitra->fresh()->status);
+        $this->assertDatabaseHas('pembahasan_histories', [
+            'pembahasan_id' => $pembahasan->id,
+            'tahap' => 'lanjutan',
+            'event' => 'dibatalkan',
+        ]);
     }
 
     public function test_pelaksana_tidak_bisa_membatalkan(): void
@@ -253,6 +276,31 @@ class PembahasanTest extends TestCase
         $mitraUser = User::factory()->create();
         $mitraUser->assignRole('mitra');
         $this->actingAs($mitraUser)->get('/pembahasan')->assertForbidden();
+    }
+
+    public function test_show_menampilkan_detail_untuk_pelaksana_terkait(): void
+    {
+        $mitra = $this->createMitra();
+        $pembahasan = $this->createPembahasan($mitra, 'direktorat_dikdas');
+
+        $this->withoutVite();
+        $this->actingAs($this->createPelaksana('direktorat_dikdas'))
+            ->get("/pembahasan/{$pembahasan->id}")
+            ->assertOk();
+
+        $this->actingAs($this->createAdmin())
+            ->get("/pembahasan/{$pembahasan->id}")
+            ->assertOk();
+    }
+
+    public function test_show_forbidden_untuk_unit_lain(): void
+    {
+        $mitra = $this->createMitra();
+        $pembahasan = $this->createPembahasan($mitra, 'direktorat_dikdas');
+
+        $this->actingAs($this->createPelaksana('direktorat_dikmen'))
+            ->get("/pembahasan/{$pembahasan->id}")
+            ->assertForbidden();
     }
 
     public function test_validasi_field_wajib_per_tahap(): void

@@ -1,8 +1,9 @@
-import { router, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import {
     CalendarClock,
     CheckCircle2,
     ClipboardCheck,
+    Eye,
     XCircle,
 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -87,6 +88,11 @@ const STATUS_OPTIONS = [
     { value: 'selesai', label: 'Selesai' },
 ];
 
+const MODA_LABELS: Record<string, string> = {
+    daring: 'Daring',
+    luring: 'Luring',
+};
+
 // 'YYYY-MM-DD HH:mm:ss' → 'YYYY-MM-DDTHH:mm' untuk input datetime-local
 function toDatetimeLocal(value: string | null): string {
     if (!value) {
@@ -108,7 +114,7 @@ export default function AudiensiIndex({
     const [jadwalTarget, setJadwalTarget] = useState<Audiensi | null>(null);
     const [hasilTarget, setHasilTarget] = useState<Audiensi | null>(null);
 
-    const jadwalForm = useForm({ jadwal: '', lokasi: '' });
+    const jadwalForm = useForm({ jadwal: '', moda: 'luring', lokasi: '' });
     const hasilForm = useForm({ hasil: '', catatan_hasil: '' });
 
     const applyFilters = useCallback(
@@ -149,6 +155,7 @@ export default function AudiensiIndex({
         setJadwalTarget(a);
         jadwalForm.setData({
             jadwal: toDatetimeLocal(a.jadwal),
+            moda: a.moda ?? 'luring',
             lokasi: a.lokasi ?? '',
         });
     };
@@ -312,6 +319,13 @@ export default function AudiensiIndex({
                                             <TableCell className="text-sm">
                                                 {a.jadwal ? (
                                                     <div>
+                                                        <p className="text-xs font-medium text-muted-foreground">
+                                                            {a.moda
+                                                                ? MODA_LABELS[
+                                                                      a.moda
+                                                                  ]
+                                                                : '-'}
+                                                        </p>
                                                         <p>
                                                             {new Date(
                                                                 a.jadwal,
@@ -359,6 +373,23 @@ export default function AudiensiIndex({
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-1.5">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-7 text-xs"
+                                                        asChild
+                                                    >
+                                                        <Link
+                                                            href={
+                                                                audiensiRoutes.show(
+                                                                    a.id,
+                                                                ).url
+                                                            }
+                                                        >
+                                                            <Eye className="mr-1 h-3.5 w-3.5" />
+                                                            Detail
+                                                        </Link>
+                                                    </Button>
                                                     {a.can_execute &&
                                                         a.status !==
                                                             'selesai' && (
@@ -477,8 +508,39 @@ export default function AudiensiIndex({
                             )}
                         </div>
                         <div className="grid gap-2">
+                            <Label>
+                                Moda{' '}
+                                <span className="text-destructive">*</span>
+                            </Label>
+                            <Select
+                                value={jadwalForm.data.moda}
+                                onValueChange={(v) =>
+                                    jadwalForm.setData('moda', v)
+                                }
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Pilih moda audiensi" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="luring">
+                                        Luring (Tatap Muka)
+                                    </SelectItem>
+                                    <SelectItem value="daring">
+                                        Daring (Online)
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {jadwalForm.errors.moda && (
+                                <p className="text-xs text-destructive">
+                                    {jadwalForm.errors.moda}
+                                </p>
+                            )}
+                        </div>
+                        <div className="grid gap-2">
                             <Label htmlFor="lokasi">
-                                Tempat / Link Meeting{' '}
+                                {jadwalForm.data.moda === 'daring'
+                                    ? 'Link Meeting'
+                                    : 'Tempat'}{' '}
                                 <span className="text-destructive">*</span>
                             </Label>
                             <Input
@@ -487,7 +549,11 @@ export default function AudiensiIndex({
                                 onChange={(e) =>
                                     jadwalForm.setData('lokasi', e.target.value)
                                 }
-                                placeholder="Contoh: Ruang Rapat GTK Lt. 12 / link Zoom"
+                                placeholder={
+                                    jadwalForm.data.moda === 'daring'
+                                        ? 'Contoh: link Zoom / Google Meet'
+                                        : 'Contoh: Ruang Rapat GTK Lt. 12'
+                                }
                             />
                             {jadwalForm.errors.lokasi && (
                                 <p className="text-xs text-destructive">

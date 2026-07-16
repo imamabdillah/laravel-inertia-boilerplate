@@ -90,6 +90,7 @@ Route::prefix('audiensi')
     ->name('audiensi.')
     ->group(function () {
         Route::get('/', [AudiensiController::class, 'index'])->name('index');
+        Route::get('{audiensi}', [AudiensiController::class, 'show'])->name('show');
         Route::patch('{audiensi}/jadwal', [AudiensiController::class, 'jadwal'])->name('jadwal');
         Route::post('{audiensi}/hasil', [AudiensiController::class, 'hasil'])->name('hasil');
     });
@@ -102,6 +103,7 @@ Route::prefix('pembahasan')
     ->name('pembahasan.')
     ->group(function () {
         Route::get('/', [PembahasanController::class, 'index'])->name('index');
+        Route::get('{pembahasan}', [PembahasanController::class, 'show'])->name('show');
         Route::patch('{pembahasan}/advance', [PembahasanController::class, 'advance'])->name('advance');
         Route::post('{pembahasan}/batal', [PembahasanController::class, 'batalkan'])->name('batal');
     });

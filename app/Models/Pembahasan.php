@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Pembahasan extends Model
@@ -74,6 +75,12 @@ class Pembahasan extends Model
     public function completedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'completed_by');
+    }
+
+    /** @return HasMany<PembahasanHistory, $this> */
+    public function histories(): HasMany
+    {
+        return $this->hasMany(PembahasanHistory::class)->orderBy('created_at');
     }
 
     /**

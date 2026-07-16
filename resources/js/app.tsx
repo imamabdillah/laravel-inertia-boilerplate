@@ -22,6 +22,7 @@ createInertiaApp({
             case name.startsWith('admin/'):
             case name.startsWith('mitra/'):
             case name.startsWith('audiensi/'):
+            case name.startsWith('pembahasan/'):
                 return null; // pakai AdminLayout internally (sidebar tunggal, menu dinamis per role)
             default:
                 return AppLayout;

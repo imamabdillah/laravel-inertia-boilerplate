@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Pembahasan;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pembahasan\AdvanceTahapRequest;
 use App\Http\Requests\Pembahasan\BatalkanPembahasanRequest;
+use App\Http\Resources\PembahasanHistoryResource;
 use App\Http\Resources\PembahasanResource;
 use App\Models\Pembahasan;
 use Illuminate\Http\RedirectResponse;
@@ -44,6 +45,25 @@ class PembahasanController extends Controller
         ]);
     }
 
+    public function show(Request $request, Pembahasan $pembahasan): Response
+    {
+        $user = $request->user();
+
+        abort_unless(
+            $user->hasAnyRole(['super_admin', 'admin']) || $user->pelaksanaUnitCode() === $pembahasan->pelaksana,
+            403
+        );
+
+        $pembahasan->load(['mitra', 'completedBy', 'histories.completedBy']);
+
+        return Inertia::render('pembahasan/show', [
+            'pembahasan' => new PembahasanResource($pembahasan),
+            'histories' => PembahasanHistoryResource::collection($pembahasan->histories),
+            'tahap_labels' => Pembahasan::tahapLabels(),
+            'can_monitor' => $user->hasAnyRole(['super_admin', 'admin']),
+        ]);
+    }
+
     public function advance(AdvanceTahapRequest $request, Pembahasan $pembahasan): RedirectResponse
     {
         if ($pembahasan->status !== 'berjalan') {
@@ -71,6 +91,17 @@ class PembahasanController extends Controller
                 $pembahasan->mitra->update(['status' => 'aktif']);
             }
 
+            $pembahasan->histories()->create([
+                'tahap' => $completedTahap,
+                'event' => 'tahap_selesai',
+                'catatan' => $request->catatan,
+                'ruang_lingkup' => $request->ruang_lingkup,
+                'rencana_kerja' => $request->rencana_kerja,
+                'nomor_pks' => $request->nomor_pks,
+                'tanggal_tandatangan' => $request->tanggal_tandatangan,
+                'completed_by' => auth()->id(),
+            ]);
+
             activity()->causedBy(auth()->user())->on($pembahasan->mitra)
                 ->log($isFinal ? 'pembahasan_selesai' : "pembahasan_{$completedTahap}_selesai");
         });
@@ -85,6 +116,8 @@ class PembahasanController extends Controller
         }
 
         DB::transaction(function () use ($request, $pembahasan) {
+            $tahapSaatDibatalkan = $pembahasan->tahap;
+
             $pembahasan->update([
                 'status' => 'dibatalkan',
                 'catatan' => $request->catatan,
@@ -94,6 +127,13 @@ class PembahasanController extends Controller
             $pembahasan->mitra->update([
                 'status' => 'ditolak',
                 'catatan_admin' => $request->catatan,
+            ]);
+
+            $pembahasan->histories()->create([
+                'tahap' => $tahapSaatDibatalkan,
+                'event' => 'dibatalkan',
+                'catatan' => $request->catatan,
+                'completed_by' => auth()->id(),
             ]);
 
             activity()->causedBy(auth()->user())->on($pembahasan->mitra)->log('pembahasan_dibatalkan');

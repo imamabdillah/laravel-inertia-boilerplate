@@ -45,6 +45,24 @@ class AudiensiController extends Controller
         ]);
     }
 
+    public function show(Request $request, Audiensi $audiensi): Response
+    {
+        $user = $request->user();
+
+        abort_unless(
+            $user->hasAnyRole(['super_admin', 'admin']) || $audiensi->canBeExecutedBy($user),
+            403
+        );
+
+        $audiensi->load(['mitra', 'assignedBy', 'completedBy']);
+
+        return Inertia::render('audiensi/show', [
+            'audiensi' => new AudiensiResource($audiensi),
+            'pelaksana_labels' => Audiensi::pelaksanaLabels(),
+            'can_monitor' => $user->hasAnyRole(['super_admin', 'admin']),
+        ]);
+    }
+
     public function jadwal(JadwalAudiensiRequest $request, Audiensi $audiensi): RedirectResponse
     {
         if ($audiensi->status === 'selesai') {
@@ -53,6 +71,7 @@ class AudiensiController extends Controller
 
         $audiensi->update([
             'jadwal' => $request->jadwal,
+            'moda' => $request->moda,
             'lokasi' => $request->lokasi,
             'status' => 'dijadwalkan',
         ]);
@@ -84,11 +103,17 @@ class AudiensiController extends Controller
                     'catatan_admin' => $request->catatan_hasil,
                 ]);
             } else {
-                $audiensi->mitra->pembahasans()->create([
+                $pembahasan = $audiensi->mitra->pembahasans()->create([
                     'audiensi_id' => $audiensi->id,
                     'pelaksana' => $audiensi->pelaksana,
                     'tahap' => Pembahasan::TAHAP_AWAL,
                     'status' => 'berjalan',
+                ]);
+
+                $pembahasan->histories()->create([
+                    'tahap' => Pembahasan::TAHAP_AWAL,
+                    'event' => 'dimulai',
+                    'completed_by' => auth()->id(),
                 ]);
 
                 activity()->causedBy(auth()->user())->on($audiensi->mitra)->log('pembahasan_dimulai');

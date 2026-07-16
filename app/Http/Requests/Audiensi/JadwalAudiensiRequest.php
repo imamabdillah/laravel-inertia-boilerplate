@@ -22,6 +22,7 @@ class JadwalAudiensiRequest extends FormRequest
     {
         return [
             'jadwal' => ['required', 'date'],
+            'moda' => ['required', 'in:daring,luring'],
             'lokasi' => ['required', 'string', 'max:255'],
         ];
     }

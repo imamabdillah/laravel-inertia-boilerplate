@@ -21,6 +21,7 @@ class Audiensi extends Model
         'assigned_by',
         'assigned_at',
         'jadwal',
+        'moda',
         'lokasi',
         'status',
         'hasil',

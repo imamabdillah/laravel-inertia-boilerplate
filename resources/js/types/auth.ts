@@ -101,6 +101,7 @@ export type Audiensi = {
     pelaksana: string;
     status: 'ditugaskan' | 'dijadwalkan' | 'selesai';
     jadwal: string | null;
+    moda: 'daring' | 'luring' | null;
     lokasi: string | null;
     hasil: 'lanjut' | 'ditolak' | null;
     catatan_hasil: string | null;
@@ -150,6 +151,25 @@ export type Pembahasan = {
         upt: string[];
         status: Mitra['status'];
     };
+    created_at: string;
+};
+
+export type PembahasanHistory = {
+    id: number;
+    tahap:
+        | 'awal'
+        | 'lanjutan'
+        | 'rk'
+        | 'finalisasi'
+        | 'validasi'
+        | 'penandatanganan';
+    event: 'dimulai' | 'tahap_selesai' | 'dibatalkan';
+    catatan: string | null;
+    ruang_lingkup: string | null;
+    rencana_kerja: string | null;
+    nomor_pks: string | null;
+    tanggal_tandatangan: string | null;
+    completed_by: string | null;
     created_at: string;
 };
 

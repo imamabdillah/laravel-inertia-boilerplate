@@ -22,6 +22,7 @@ class AudiensiResource extends JsonResource
             'pelaksana' => $this->pelaksana,
             'status' => $this->status,
             'jadwal' => $this->jadwal?->toDateTimeString(),
+            'moda' => $this->moda,
             'lokasi' => $this->lokasi,
             'hasil' => $this->hasil,
             'catatan_hasil' => $this->catatan_hasil,
