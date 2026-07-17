@@ -65,6 +65,27 @@ class Mitra extends Model
         'smk' => 'direktorat_dikmen',
     ];
 
+    /**
+     * Satu Mitra per user (keyed user_id), auto-create saat pertama diakses.
+     */
+    public static function firstOrCreateForUser(User $user): self
+    {
+        return self::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'nama_lembaga' => '',
+                'jenis_lembaga' => 'lainnya',
+                'bidang_kerja' => '',
+                'telepon' => '',
+                'email_lembaga' => '',
+                'pic_nama' => '',
+                'pic_jabatan' => '',
+                'pic_telepon' => '',
+                'pic_email' => '',
+            ]
+        );
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

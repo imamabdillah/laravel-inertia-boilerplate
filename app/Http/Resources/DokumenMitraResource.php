@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class DokumenMitraResource extends JsonResource
 {
@@ -17,7 +16,7 @@ class DokumenMitraResource extends JsonResource
             'wajib' => $this->wajib,
             'nama_file' => $this->nama_file,
             'file_path' => $this->file_path,
-            'file_url' => Storage::disk('public')->url($this->file_path),
+            'file_url' => $this->file_url,
             'file_type' => $this->file_type,
             'file_size' => $this->file_size,
             'file_size_formatted' => $this->file_size_formatted,

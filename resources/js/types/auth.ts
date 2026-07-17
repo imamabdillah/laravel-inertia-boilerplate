@@ -121,6 +121,25 @@ export type Audiensi = {
     created_at: string;
 };
 
+export type PembahasanDokumen = {
+    id: number;
+    collection:
+        | 'draf_naskah'
+        | 'rencana_kerja'
+        | 'surat_kuasa'
+        | 'pks_tertandatangan'
+        | 'lainnya';
+    nama_file: string;
+    file_url: string;
+    mime_type: string;
+    file_size: number;
+    file_size_formatted: string;
+    tahap: string | null;
+    uploaded_by: string | null;
+    label: string | null;
+    created_at: string;
+};
+
 export type Pembahasan = {
     id: number;
     mitra_id: number;
@@ -142,6 +161,8 @@ export type Pembahasan = {
     completed_by?: string | null;
     can_advance?: boolean;
     can_batalkan?: boolean;
+    can_upload_dokumen?: boolean;
+    dokumen?: PembahasanDokumen[];
     mitra?: {
         id: number;
         nama_lembaga: string;

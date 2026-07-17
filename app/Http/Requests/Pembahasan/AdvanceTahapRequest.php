@@ -32,4 +32,28 @@ class AdvanceTahapRequest extends FormRequest
             'tanggal_tandatangan' => [Rule::requiredIf($pembahasan->tahap === Pembahasan::TAHAP_PENANDATANGANAN), 'nullable', 'date'],
         ];
     }
+
+    /**
+     * Penandatanganan hanya bisa diselesaikan kalau arsip PKS tertandatangan
+     * sudah diupload (flow: "dokumen ditandatangani dan diarsipkan").
+     *
+     * @return array<int, callable>
+     */
+    public function after(): array
+    {
+        /** @var Pembahasan $pembahasan */
+        $pembahasan = $this->route('pembahasan');
+
+        return [
+            function ($validator) use ($pembahasan) {
+                if ($pembahasan->tahap === Pembahasan::TAHAP_PENANDATANGANAN
+                    && $pembahasan->getMedia('pks_tertandatangan')->isEmpty()) {
+                    $validator->errors()->add(
+                        'pks_tertandatangan',
+                        'Unggah arsip PKS tertandatangan terlebih dahulu sebelum menyelesaikan tahap Penandatanganan.'
+                    );
+                }
+            },
+        ];
+    }
 }

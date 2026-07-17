@@ -54,12 +54,13 @@ class PembahasanController extends Controller
             403
         );
 
-        $pembahasan->load(['mitra', 'completedBy', 'histories.completedBy']);
+        $pembahasan->load(['mitra', 'completedBy', 'histories.completedBy', 'media']);
 
         return Inertia::render('pembahasan/show', [
             'pembahasan' => new PembahasanResource($pembahasan),
             'histories' => PembahasanHistoryResource::collection($pembahasan->histories),
             'tahap_labels' => Pembahasan::tahapLabels(),
+            'dokumen_jenis_labels' => Pembahasan::dokumenJenisLabels(),
             'can_monitor' => $user->hasAnyRole(['super_admin', 'admin']),
         ]);
     }

@@ -4,14 +4,12 @@ namespace App\Http\Controllers\Mitra;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Mitra\UpdateMitraRequest;
+use App\Http\Requests\Mitra\UploadDokumenMitraRequest;
 use App\Http\Resources\MitraResource;
 use App\Models\DokumenMitra;
 use App\Models\Mitra;
 use App\Models\RefUpt;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -19,26 +17,13 @@ class ProfilController extends Controller
 {
     private function getMitraForAuth(): Mitra
     {
-        return Mitra::firstOrCreate(
-            ['user_id' => auth()->id()],
-            [
-                'nama_lembaga' => '',
-                'jenis_lembaga' => 'lainnya',
-                'bidang_kerja' => '',
-                'telepon' => '',
-                'email_lembaga' => '',
-                'pic_nama' => '',
-                'pic_jabatan' => '',
-                'pic_telepon' => '',
-                'pic_email' => '',
-            ]
-        );
+        return Mitra::firstOrCreateForUser(auth()->user());
     }
 
     public function show(): Response
     {
         $mitra = $this->getMitraForAuth();
-        $mitra->load('dokumens');
+        $mitra->load('dokumens.media');
 
         return Inertia::render('mitra/profil/edit', [
             'mitra' => new MitraResource($mitra),
@@ -62,44 +47,15 @@ class ProfilController extends Controller
         return back()->with('success', 'Profil mitra berhasil disimpan.');
     }
 
-    public function uploadDokumen(Request $request): RedirectResponse
+    public function uploadDokumen(UploadDokumenMitraRequest $request): RedirectResponse
     {
-        \Log::info('DEBUG upload', [
-            'jenis_dokumen' => $request->input('jenis_dokumen'),
-            'has_file' => $request->hasFile('file'),
-            'file_valid' => $request->hasFile('file') ? $request->file('file')->isValid() : null,
-            'file_error' => $request->hasFile('file') ? $request->file('file')->getError() : null,
-            'file_mime' => $request->hasFile('file') ? $request->file('file')->getMimeType() : null,
-            'file_ext' => $request->hasFile('file') ? $request->file('file')->getClientOriginalExtension() : null,
-            'file_size' => $request->hasFile('file') ? $request->file('file')->getSize() : null,
-        ]);
-
-        try {
-            $request->validate([
-                'jenis_dokumen' => ['required', 'in:surat_pengajuan,proposal_kerja_sama,dokumen_legalitas,profil_perusahaan'],
-                'file' => ['required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png'],
-            ]);
-        } catch (ValidationException $e) {
-            \Log::info('DEBUG upload validation failed', $e->errors());
-            throw $e;
-        }
-
         $mitra = $this->getMitraForAuth();
-
-        $file = $request->file('file');
         $jenis = $request->jenis_dokumen;
-        $wajib = in_array($jenis, Mitra::DOKUMEN_WAJIB);
-        $path = $file->store("dokumen-mitra/{$mitra->id}", 'public');
 
         $existing = $mitra->dokumens()->where('jenis_dokumen', $jenis)->first();
 
         if ($existing && $existing->status !== 'diterima') {
-            Storage::disk('public')->delete($existing->file_path);
             $existing->update([
-                'nama_file' => $file->getClientOriginalName(),
-                'file_path' => $path,
-                'file_type' => $file->getMimeType(),
-                'file_size' => $file->getSize(),
                 'status' => 'menunggu',
                 'catatan' => null,
             ]);
@@ -107,14 +63,13 @@ class ProfilController extends Controller
         } else {
             $dokumen = $mitra->dokumens()->create([
                 'jenis_dokumen' => $jenis,
-                'wajib' => $wajib,
-                'nama_file' => $file->getClientOriginalName(),
-                'file_path' => $path,
-                'file_type' => $file->getMimeType(),
-                'file_size' => $file->getSize(),
+                'wajib' => in_array($jenis, Mitra::DOKUMEN_WAJIB),
                 'status' => 'menunggu',
             ]);
         }
+
+        // singleFile() di collection 'file' otomatis mengganti file lama.
+        $dokumen->addMediaFromRequest('file')->toMediaCollection('file');
 
         activity()->causedBy(auth()->user())->on($dokumen)->log('uploaded');
 
@@ -133,7 +88,7 @@ class ProfilController extends Controller
             return back()->with('error', 'Dokumen yang sudah diterima tidak bisa dihapus.');
         }
 
-        Storage::disk('public')->delete($dokumen->file_path);
+        $dokumen->clearMediaCollection('file');
         $dokumen->delete();
 
         activity()->causedBy(auth()->user())->on($mitra)->log('dokumen_deleted');

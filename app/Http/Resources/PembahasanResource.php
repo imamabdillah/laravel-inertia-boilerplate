@@ -31,6 +31,17 @@ class PembahasanResource extends JsonResource
             'completed_by' => $this->whenLoaded('completedBy', fn () => $this->completedBy?->name),
             'can_advance' => $request->user() ? $this->canAdvanceTahap($request->user()) : false,
             'can_batalkan' => $request->user() ? $request->user()->hasAnyRole(['super_admin', 'admin']) : false,
+            'can_upload_dokumen' => $request->user() ? $this->canManageDokumen($request->user()) : false,
+            'dokumen' => $this->whenLoaded('media', function () use ($request) {
+                $media = $this->media;
+
+                // Mitra hanya melihat arsip PKS final — draf internal tidak diekspos.
+                if ($request->user()?->hasRole('mitra')) {
+                    $media = $media->where('collection_name', 'pks_tertandatangan')->values();
+                }
+
+                return MediaResource::collection($media);
+            }),
             'mitra' => $this->whenLoaded('mitra', fn () => [
                 'id' => $this->mitra->id,
                 'nama_lembaga' => $this->mitra->nama_lembaga,

@@ -8,6 +8,8 @@ use App\Models\RefDirektorat;
 use App\Models\RefUpt;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -85,6 +87,15 @@ class PembahasanTest extends TestCase
             'tahap' => Pembahasan::TAHAP_AWAL,
             'status' => 'berjalan',
         ], $attributes));
+    }
+
+    /** Advance penandatanganan wajib punya arsip PKS tertandatangan. */
+    private function attachPksTertandatangan(Pembahasan $pembahasan): void
+    {
+        Storage::fake('public');
+        $pembahasan->addMedia(
+            UploadedFile::fake()->createWithContent('pks.pdf', "%PDF-1.4\n%fake pdf untuk test\n")
+        )->toMediaCollection('pks_tertandatangan');
     }
 
     public function test_pelaksana_direktorat_dapat_menyelesaikan_tahap_1_sampai_3(): void
@@ -180,6 +191,8 @@ class PembahasanTest extends TestCase
         $pembahasan->refresh();
         $this->assertSame('penandatanganan', $pembahasan->tahap);
         $this->assertSame('PKS/001/GTKPG/2026', $pembahasan->nomor_pks);
+
+        $this->attachPksTertandatangan($pembahasan);
 
         $this->actingAs($admin)
             ->patch("/pembahasan/{$pembahasan->id}/advance", [
@@ -321,6 +334,6 @@ class PembahasanTest extends TestCase
         $penandatanganan = $this->createPembahasan($mitra, 'direktorat_dikdas', ['tahap' => Pembahasan::TAHAP_PENANDATANGANAN]);
         $this->actingAs($admin)
             ->patch("/pembahasan/{$penandatanganan->id}/advance", ['catatan' => 'Catatan tanpa tanggal tandatangan.'])
-            ->assertSessionHasErrors('tanggal_tandatangan');
+            ->assertSessionHasErrors(['tanggal_tandatangan', 'pks_tertandatangan']);
     }
 }

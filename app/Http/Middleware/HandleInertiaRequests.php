@@ -81,6 +81,17 @@ class HandleInertiaRequests extends Middleware
                         'order' => 1,
                         'children' => [],
                     ]);
+
+                    $virtual->push([
+                        'id' => -4,
+                        'name' => 'Progres Kerja Sama',
+                        'group' => null,
+                        'icon' => 'ListChecks',
+                        'route' => route('mitra.progres', absolute: false),
+                        'permission' => null,
+                        'order' => 2,
+                        'children' => [],
+                    ]);
                 }
 
                 if ($user->isAudiensiPelaksana()) {

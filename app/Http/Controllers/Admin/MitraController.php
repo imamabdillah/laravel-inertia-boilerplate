@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AssignAudiensiRequest;
+use App\Http\Requests\Admin\ReviewDokumenRequest;
 use App\Http\Resources\MitraResource;
 use App\Models\Audiensi;
 use App\Models\DokumenMitra;
@@ -41,7 +42,7 @@ class MitraController extends Controller
     public function show(Mitra $mitra): Response
     {
         $mitra->load([
-            'user', 'dokumens', 'verifiedBy',
+            'user', 'dokumens.media', 'verifiedBy',
             'latestAudiensi.assignedBy', 'latestAudiensi.completedBy',
             'latestPembahasan.completedBy',
         ]);
@@ -146,13 +147,8 @@ class MitraController extends Controller
         return back()->with('success', 'Mitra berhasil ditolak.');
     }
 
-    public function reviewDokumen(Request $request, Mitra $mitra, DokumenMitra $dokumen): RedirectResponse
+    public function reviewDokumen(ReviewDokumenRequest $request, Mitra $mitra, DokumenMitra $dokumen): RedirectResponse
     {
-        $request->validate([
-            'status' => ['required', 'in:diterima,ditolak'],
-            'catatan' => ['nullable', 'string'],
-        ]);
-
         if ($dokumen->mitra_id !== $mitra->id) {
             abort(404);
         }

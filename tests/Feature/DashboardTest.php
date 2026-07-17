@@ -16,12 +16,13 @@ class DashboardTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    public function test_authenticated_users_can_visit_the_dashboard()
+    public function test_authenticated_users_diarahkan_sesuai_role()
     {
         $user = User::factory()->create();
         $this->actingAs($user);
 
+        // Dashboard adalah router per-role; user tanpa role diarahkan ke profil.
         $response = $this->get(route('dashboard'));
-        $response->assertOk();
+        $response->assertRedirect(route('profile.edit'));
     }
 }

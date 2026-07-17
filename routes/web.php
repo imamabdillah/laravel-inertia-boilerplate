@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Audiensi\AudiensiController;
 use App\Http\Controllers\Mitra\ProfilController;
+use App\Http\Controllers\Mitra\ProgresController;
+use App\Http\Controllers\Pembahasan\DokumenPembahasanController;
 use App\Http\Controllers\Pembahasan\PembahasanController;
 use Illuminate\Support\Facades\Route;
 
@@ -106,12 +108,15 @@ Route::prefix('pembahasan')
         Route::get('{pembahasan}', [PembahasanController::class, 'show'])->name('show');
         Route::patch('{pembahasan}/advance', [PembahasanController::class, 'advance'])->name('advance');
         Route::post('{pembahasan}/batal', [PembahasanController::class, 'batalkan'])->name('batal');
+        Route::post('{pembahasan}/dokumen', [DokumenPembahasanController::class, 'store'])->name('dokumen.store');
+        Route::delete('{pembahasan}/dokumen/{media}', [DokumenPembahasanController::class, 'destroy'])->name('dokumen.destroy');
     });
 
 Route::prefix('mitra')
     ->middleware(['auth', 'verified', 'role:mitra'])
     ->name('mitra.')
     ->group(function () {
+        Route::get('progres', ProgresController::class)->name('progres');
         Route::get('profil', [ProfilController::class, 'show'])->name('profil.show');
         Route::put('profil', [ProfilController::class, 'update'])->name('profil.update');
         Route::post('profil/dokumen', [ProfilController::class, 'uploadDokumen'])->name('profil.dokumen.upload');

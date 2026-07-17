@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Pembahasan extends Model
+class Pembahasan extends Model implements HasMedia
 {
+    use InteractsWithMedia;
     use SoftDeletes;
 
     public const TAHAP_AWAL = 'awal';
@@ -39,6 +42,9 @@ class Pembahasan extends Model
     // Tahap 4-6: ranah Setditjen (mewakili fungsi Biro Roren KS & Biro Hukum) — admin/super_admin saja.
     public const TAHAP_GROUP_SETDITJEN = [self::TAHAP_FINALISASI, self::TAHAP_VALIDASI, self::TAHAP_PENANDATANGANAN];
 
+    // Jenis dokumen = nama media collection (lihat registerMediaCollections).
+    public const DOKUMEN_JENIS = ['draf_naskah', 'rencana_kerja', 'surat_kuasa', 'pks_tertandatangan', 'lainnya'];
+
     protected $table = 'pembahasans';
 
     protected $fillable = [
@@ -58,6 +64,18 @@ class Pembahasan extends Model
     protected $casts = [
         'tanggal_tandatangan' => 'date',
     ];
+
+    /**
+     * Semua jenis multi-file — termasuk PKS tertandatangan: arsip legal bisa
+     * multi-bagian, dan singleFile akan diam-diam mengganti arsip lama.
+     */
+    public function registerMediaCollections(): void
+    {
+        foreach (self::DOKUMEN_JENIS as $jenis) {
+            $this->addMediaCollection($jenis)
+                ->acceptsMimeTypes(['application/pdf', 'image/jpeg', 'image/png']);
+        }
+    }
 
     /** @return BelongsTo<Mitra, $this> */
     public function mitra(): BelongsTo
@@ -101,6 +119,22 @@ class Pembahasan extends Model
     }
 
     /**
+     * Label jenis dokumen pembahasan.
+     *
+     * @return array<string, string>
+     */
+    public static function dokumenJenisLabels(): array
+    {
+        return [
+            'draf_naskah' => 'Draf Naskah Kerja Sama',
+            'rencana_kerja' => 'Dokumen Rencana Kerja',
+            'surat_kuasa' => 'Surat Kuasa',
+            'pks_tertandatangan' => 'PKS Tertandatangan',
+            'lainnya' => 'Dokumen Lainnya',
+        ];
+    }
+
+    /**
      * Tahap berikutnya di TAHAP_ORDER, atau null kalau sudah di tahap terakhir.
      */
     public function nextTahap(): ?string
@@ -126,6 +160,16 @@ class Pembahasan extends Model
         }
 
         return false;
+    }
+
+    /**
+     * Otorisasi upload/hapus dokumen mengikuti otorisasi advance tahap:
+     * pelaksana unit hanya di tahap 1-3, admin/super_admin selalu — dan
+     * hanya selama pembahasan masih berjalan.
+     */
+    public function canManageDokumen(User $user): bool
+    {
+        return $this->status === 'berjalan' && $this->canAdvanceTahap($user);
     }
 
     /**

@@ -87,7 +87,7 @@ export default function AudiensiShow({
 
     return (
         <AdminLayout breadcrumbs={breadcrumbs}>
-            <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 p-4 md:p-6">
+            <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 p-4 md:p-6">
                 <div className="flex items-center gap-4">
                     <Button variant="outline" size="icon" asChild>
                         <Link href={audiensiRoutes.index().url}>
