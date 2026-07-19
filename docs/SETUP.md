@@ -1,6 +1,6 @@
 # Setup Environment
 
-Panduan setup dari nol sampai aplikasi jalan. Baca [CODING_GUIDE.md](./CODING_GUIDE.md) buat konvensi coding setelah environment siap.
+Panduan setup dari nol sampai aplikasi jalan. Baca [CODING_GUIDE.md](./CODING_GUIDE.md) buat konvensi coding setelah environment siap. Buat deploy ke server production, lihat [DEPLOY.md](./DEPLOY.md).
 
 ## Prasyarat
 

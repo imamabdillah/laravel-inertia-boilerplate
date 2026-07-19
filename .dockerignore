@@ -1,0 +1,44 @@
+# VCS & CI
+.git
+.github
+
+# Dependency & build output — di-install/di-build di dalam image
+node_modules
+vendor
+public/build
+public/hot
+public/storage
+bootstrap/ssr
+
+# Auto-generated Wayfinder — di-regenerate saat build
+resources/js/actions
+resources/js/routes
+resources/js/wayfinder
+
+# Runtime data — jangan pernah masuk image
+.env
+.env.*
+auth.json
+storage/*.key
+storage/app/private/*
+storage/app/public/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*
+storage/logs/*
+storage/pail
+!storage/**/.gitignore
+
+# Tidak dipakai di production image
+tests
+docs
+compose.yaml
+compose.prod.yaml
+Dockerfile
+.dockerignore
+pnpm-lock.yaml
+pnpm-workspace.yaml
+.phpunit.cache
+.phpunit.result.cache
+*.md
